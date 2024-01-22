@@ -1,0 +1,10 @@
+[package]
+name = "cheater"
+version = "1.0.0"
+authors = []
+
+[addresses]
+deploy_addr = "_"
+
+[dependencies.dice-roll]
+local = "../dice_roll"
