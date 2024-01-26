@@ -1,0 +1,20 @@
+[package]
+name = "mailbox"
+version = "1.0.0"
+authors = []
+# To make the mailbox truly untouchable by others.  Once the contract is complete,
+# the contract should be deployed as immutable, so
+# upgrade_policy = "immutable"
+
+[addresses]
+deploy_addr = "_"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dependencies.AptosToken]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-token"
