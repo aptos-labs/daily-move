@@ -1,0 +1,22 @@
+[package]
+name = "fractional-token"
+version = "1.0.0"
+authors = []
+# This should be immutable to ensure that shares are not burnt
+# upgrade_policy = "immutable"
+
+[addresses]
+fraction_addr = "_"
+
+[dev-addresses]
+fraction_addr = "0x1337"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dependencies.AptosTokenObjects]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-token-objects"
