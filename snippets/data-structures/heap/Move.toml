@@ -1,0 +1,17 @@
+[package]
+name = "Heap"
+version = "1.0.0"
+authors = []
+
+[addresses]
+deploy_addr = "_"
+
+[dev-addresses]
+deploy_addr = "0x12345"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dev-dependencies]
