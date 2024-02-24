@@ -4,7 +4,16 @@
 ///
 /// A max heap can be handled similarly by changing the comparisons before swapping
 module deploy_addr::min_heap {
+    spec module {
+        pragma verify = true;
+    }
+
+    use std::option;
+    use std::option::Option;
     use std::vector;
+
+    /// Heap is empty
+    const E_EMPTY: u64 = 1;
 
     /// A MinHeap of u64
     ///
@@ -12,6 +21,8 @@ module deploy_addr::min_heap {
     struct MinHeap has store, drop {
         inner: vector<u64>
     }
+
+    spec MinHeap {}
 
     /// In-place sorts a vector
     ///
@@ -28,9 +39,15 @@ module deploy_addr::min_heap {
         };
     }
 
+    spec heap_sort(self: &mut vector<u64>) {}
+
     /// Creates an empty heap
     public fun new(): MinHeap {
         MinHeap { inner: vector[] }
+    }
+
+    spec new(): MinHeap {
+        ensures is_empty(result);
     }
 
     /// Creates a heap from a vector
@@ -41,11 +58,15 @@ module deploy_addr::min_heap {
 
         MinHeap { inner: vec }
     }
+    spec from_vec(vec: vector<u64>): MinHeap {}
 
     /// Converts the heap to a vector
     public fun to_vec(heap: MinHeap): vector<u64> {
         let MinHeap { inner } = heap;
         inner
+    }
+    spec to_vec(heap: MinHeap): vector<u64> {
+        ensures result == heap.inner;
     }
 
     /// Inserts into the heap sorted
@@ -53,17 +74,28 @@ module deploy_addr::min_heap {
         vector::insert(&mut self.inner, 0, value);
         heapify_heap(self, 0)
     }
+    spec insert(self: &mut MinHeap, value: u64) {}
 
     /// Inserts into the heap sorted
     public fun pop(self: &mut MinHeap): u64 {
+        assert!(!is_empty(self), E_EMPTY);
         let ret = vector::swap_remove(&mut self.inner, 0);
         heapify_heap(self, 0);
         ret
     }
+    spec pop(self: &mut MinHeap): u64 {
+        requires len(self.inner) > 0;
+    }
 
     /// Gets the minimum of the heap (top)
     public fun min(self: &MinHeap): u64 {
+        assert!(!is_empty(self), E_EMPTY);
         *vector::borrow(&self.inner, 0)
+    }
+    spec min(self: &MinHeap): u64 {
+        requires len(self.inner) > 0;
+        aborts_if is_empty(self);
+        aborts_with E_EMPTY;
     }
 
     /// Gets the size of the vector
@@ -71,9 +103,17 @@ module deploy_addr::min_heap {
         vector::length(&self.inner)
     }
 
+    spec size(self: &MinHeap): u64 {
+        ensures result == len(self.inner);
+    }
+
     /// Returns true if the heap is empty
     public fun is_empty(self: &MinHeap): bool {
         size(self) == 0
+    }
+
+    spec is_empty(self: &MinHeap): bool {
+        ensures result == (size(self) == 0);
     }
 
     /// Convenience function to heapify just the heap
@@ -89,13 +129,30 @@ module deploy_addr::min_heap {
         // Base case, ensure that it doesn't crash if there's nothing left
         if (size == 0 || root >= size) { return };
 
+        // Iteratively find the smallest from the top to the bottom of the heap
+        let current_root = root;
+        while (current_root < size) {
+            let maybe_smallest = heapify_inner(array, size, current_root);
+            if (option::is_none(&maybe_smallest)) { break };
+
+            current_root = option::destroy_some(maybe_smallest);
+        }
+    }
+
+    spec heapify(array: &mut vector<u64>, size: u64, root: u64) {}
+
+    /// A self contained piece of heapify to allow specifications directly on it
+    /// for gas purposes, it would be better to inline, but we can't add specs directly to inline
+    fun heapify_inner(array: &mut vector<u64>, size: u64, root: u64): Option<u64> {
+        if (root >= size) { return option::none() };
+
         // Initialize smallest as the current root
         let smallest = root;
         let smallest_value = *vector::borrow(array, smallest);
 
         // Check two children
-        let left = 2 * root + 1;
-        let right = left + 1;
+        let left = left(root);
+        let right = right(root);
 
         // If left child is smaller than root, make it the smallest
         if (left < size) {
@@ -114,15 +171,36 @@ module deploy_addr::min_heap {
             if (right_value < smallest_value) {
                 smallest = right;
             };
-        } ;
-
+        };
 
         // Swap smallest if it isn't the root
         if (smallest != root) {
             vector::swap(array, smallest, root);
+            option::some(smallest)
+        } else {
+            option::none()
+        }
+    }
 
-            // Recursively heapify subtrees
-            heapify(array, size, smallest);
-        };
+    spec heapify_inner(array: &mut vector<u64>, size: u64, root: u64): Option<u64> {
+        requires size > 0;
+        // Ensure that the left and right nodes below on the tree are sorted at the end
+        ensures left_sorted(array, size, root) && right_sorted(array, size, root);
+    }
+
+    spec fun left_sorted(array: vector<u64>, size: u64, root: u64): bool {
+        left(root) >= size || array[root] <= array[left(root)]
+    }
+
+    spec fun right_sorted(array: vector<u64>, size: u64, root: u64): bool {
+        right(root) >= size || array[root] <= array[right(root)]
+    }
+
+    inline fun left(i: u64): u64 {
+        i * 2 + 1
+    }
+
+    inline fun right(i: u64): u64 {
+        i * 2 + 2
     }
 }

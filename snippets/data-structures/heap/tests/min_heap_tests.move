@@ -52,6 +52,20 @@ module deploy_addr::min_heap_tests {
     }
 
     #[test]
+    #[expected_failure(abort_code = 1, location = min_heap)]
+    /// Checks that a left child will fail if out of order
+    fun test_pop_empty() {
+        min_heap::pop(&mut min_heap::new());
+    }
+
+    #[test]
+    #[expected_failure(abort_code = 1, location = min_heap)]
+    /// Checks that a left child will fail if out of order
+    fun test_min_empty() {
+        min_heap::min(&mut min_heap::new());
+    }
+
+    #[test]
     fun heap_sort_e2e_test() {
         let vec = vector[2, 3, 4, 5, 1, 0];
         let heap = from_vec(vec);
