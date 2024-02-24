@@ -1,2 +1,7 @@
 build/
 .idea/
+.aptos/
+boogie.bpl
+.coverage_map.mvcov
+doc/
+.trace
