@@ -1,4 +1,4 @@
-/// Liquid fungible asset allows for a fungible asset liquidity on a set of TokenObjects
+/// Liquid fungible asset allows for a fungible asset liquidity on a set of TokenObjects (Token V2)
 ///
 /// Note that tokens are mixed together in as if they were all the same value, and are
 /// randomly chosen when withdrawing.  This might have consequences where too many
@@ -11,21 +11,18 @@
 /// - User can call `claim` which will withdraw a random NFT from the pool in exchange for tokens
 module fraction_addr::liquid_fungible_asset {
 
-    use std::bcs;
     use std::option;
     use std::signer;
     use std::string::String;
     use std::vector;
-    use aptos_std::from_bcs;
     use aptos_std::smart_vector::{Self, SmartVector};
-    use aptos_framework::fungible_asset::{Self};
     use aptos_framework::object::{Self, Object, ExtendRef, object_address, is_owner};
     use aptos_framework::primary_fungible_store;
-    use aptos_framework::transaction_context;
     use aptos_token_objects::collection::{Self, Collection};
-    use aptos_token_objects::token;
-    use aptos_token_objects::token::{Token as TokenObject};
-    use fraction_addr::common;
+    use aptos_token_objects::token::{Self, Token as TokenObject};
+    use fraction_addr::common::{one_nft_in_fungible_assets, pseudorandom_u64, create_sticky_object,
+        create_fungible_asset
+    };
 
     /// Can't create fractionalize digital asset, not owner of collection
     const E_NOT_OWNER_OF_COLLECTION: u64 = 1;
@@ -61,6 +58,17 @@ module fraction_addr::liquid_fungible_asset {
         decimals: u8,
         project_uri: String,
     ) {
+        create_liquid_token_internal(caller, collection, asset_name, asset_symbol, decimals, project_uri);
+    }
+
+    fun create_liquid_token_internal(
+        caller: &signer,
+        collection: Object<Collection>,
+        asset_name: String,
+        asset_symbol: String,
+        decimals: u8,
+        project_uri: String,
+    ): Object<LiquidTokenMetadata> {
         // Assert ownership before fractionalizing, this is to ensure there are not duplicates of it
         let caller_address = signer::address_of(caller);
         assert!(object::is_owner(collection, caller_address), E_NOT_OWNER_OF_COLLECTION);
@@ -73,9 +81,9 @@ module fraction_addr::liquid_fungible_asset {
 
         // Build the object to hold the liquid token
         // This must be a sticky object (a non-deleteable object) to be fungible
-        let (constructor, extend_ref, object_signer, object_address) = common::create_sticky_object(caller_address);
+        let (constructor, extend_ref, object_signer, object_address) = create_sticky_object(caller_address);
         let collection_uri = collection::uri(collection);
-        common::create_fungible_asset(
+        create_fungible_asset(
             object_address,
             &constructor,
             asset_supply,
@@ -88,7 +96,9 @@ module fraction_addr::liquid_fungible_asset {
 
         move_to(&object_signer, LiquidTokenMetadata {
             collection, extend_ref, token_pool: smart_vector::new()
-        })
+        });
+
+        object::address_to_object(object_address)
     }
 
     /// Allows for claiming a token from the collection
@@ -96,7 +106,7 @@ module fraction_addr::liquid_fungible_asset {
     /// The token claim is random from all the tokens stored in the contract
     entry fun claim(caller: &signer, metadata: Object<LiquidTokenMetadata>, count: u64) acquires LiquidTokenMetadata {
         let caller_address = signer::address_of(caller);
-        let redeem_amount = one_token(metadata) * count;
+        let redeem_amount = one_nft_in_fungible_assets(metadata) * count;
 
         assert!(primary_fungible_store::balance(caller_address, metadata) >= redeem_amount,
             E_NOT_ENOUGH_LIQUID_TOKENS
@@ -126,7 +136,7 @@ module fraction_addr::liquid_fungible_asset {
         tokens: vector<Object<TokenObject>>
     ) acquires LiquidTokenMetadata {
         let caller_address = signer::address_of(caller);
-        let liquidify_amount = one_token(metadata) * vector::length(&tokens);
+        let liquidify_amount = one_nft_in_fungible_assets(metadata) * vector::length(&tokens);
         let object_address = object_address(&metadata);
         let liquid_token = borrow_global_mut<LiquidTokenMetadata>(object_address);
 
@@ -152,14 +162,115 @@ module fraction_addr::liquid_fungible_asset {
         primary_fungible_store::transfer(&object_signer, metadata, caller_address, liquidify_amount);
     }
 
-    inline fun one_token(metadata: Object<LiquidTokenMetadata>): u64 {
-        (fungible_asset::decimals(metadata) as u64)
+    #[test_only]
+    use std::string;
+    #[test_only]
+    use aptos_std::string_utils;
+    #[test_only]
+    use aptos_framework::account::create_account_for_test;
+    #[test_only]
+    use aptos_framework::genesis;
+    #[test_only]
+    use aptos_token_objects::token::Token;
+
+    #[test_only]
+    struct TestToken {}
+
+    #[test_only]
+    const COLLECTION_NAME: vector<u8> = b"MyCollection";
+    #[test_only]
+    const ASSET_NAME: vector<u8> = b"LiquidToken";
+    #[test_only]
+    const ASSET_SYMBOL: vector<u8> = b"L-NFT";
+    #[test_only]
+    const TOKEN_NAME: vector<u8> = b"Token";
+
+    #[test(creator = @fraction_addr, collector = @0xbeef)]
+    fun test_nft_e2e(creator: &signer, collector: &signer) acquires LiquidTokenMetadata {
+        genesis::setup();
+        let creator_address = signer::address_of(creator)  ;
+        let collector_address = signer::address_of(collector);
+        create_account_for_test(creator_address);
+        create_account_for_test(collector_address);
+
+        // Setup collection
+        let collection = create_collection(creator);
+        let tokens = create_tokens(creator, collector);
+
+        // Create liquid token
+        let metadata_object = create_liquid_token_internal(
+            creator,
+            collection,
+            string::utf8(ASSET_NAME),
+            string::utf8(ASSET_SYMBOL),
+            8,
+            string::utf8(b""),
+        );
+        let object_address = object::object_address(&metadata_object);
+
+        // Liquify some tokens
+        assert!(0 == primary_fungible_store::balance(collector_address, metadata_object), 1);
+
+        liquify(collector, metadata_object, vector[*vector::borrow(&tokens, 0), *vector::borrow(&tokens, 2)]);
+
+        assert!(
+            primary_fungible_store::balance(collector_address, metadata_object) == 2 * one_nft_in_fungible_assets(
+                metadata_object
+            ),
+            2
+        );
+
+        let metadata = borrow_global<LiquidTokenMetadata>(object_address);
+        assert!(2 == smart_vector::length(&metadata.token_pool), 3);
+
+        // Claim the NFTs back
+        claim(collector, metadata_object, 2);
+
+        assert!(primary_fungible_store::balance(collector_address, metadata_object) == 0, 4);
+        let metadata = borrow_global<LiquidTokenMetadata>(object_address);
+        assert!(0 == smart_vector::length(&metadata.token_pool), 5);
     }
 
-    inline fun pseudorandom_u64(size: u64): u64 {
-        let auid = transaction_context::generate_auid_address();
-        let bytes = bcs::to_bytes(&auid);
-        let val = from_bcs::to_u256(bytes) % (size as u256);
-        (val as u64)
+    #[test_only]
+    fun create_collection(creator: &signer): Object<Collection> {
+        let constructor = collection::create_fixed_collection(
+            creator,
+            string::utf8(b""),
+            5,
+            string::utf8(COLLECTION_NAME),
+            option::none(),
+            string::utf8(b""),
+        );
+        object::object_from_constructor_ref(&constructor)
+    }
+
+    #[test_only]
+    fun create_tokens(creator: &signer, collector: &signer): vector<Object<Token>> {
+        let tokens = vector[];
+        let collection_name = string::utf8(COLLECTION_NAME);
+        let collector_address = signer::address_of(collector);
+        for (i in 0..5) {
+            let name = token_name(i);
+            let constructor = token::create(
+                creator,
+                collection_name,
+                string::utf8(b""),
+                name,
+                option::none(),
+                string::utf8(b""),
+            );
+
+            let token = object::object_from_constructor_ref(&constructor);
+            vector::push_back(&mut tokens, token);
+
+            object::transfer(creator, token, collector_address);
+        };
+
+        tokens
+    }
+
+    #[test_only]
+    fun token_name(i: u64): String {
+        string_utils::format2(&b"{}:{}", string::utf8(TOKEN_NAME), i)
     }
 }

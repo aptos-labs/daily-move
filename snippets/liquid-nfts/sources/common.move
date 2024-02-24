@@ -1,19 +1,24 @@
 module fraction_addr::common {
 
+    use std::bcs;
     use std::option;
     use std::string::String;
+    use aptos_std::from_bcs;
+    use aptos_std::math64;
     use aptos_framework::aptos_account;
     use aptos_framework::coin;
     use aptos_framework::coin::{destroy_mint_cap, destroy_freeze_cap, destroy_burn_cap};
     use aptos_framework::fungible_asset;
     use aptos_framework::object;
-    use aptos_framework::object::{ExtendRef, ConstructorRef};
+    use aptos_framework::object::{ExtendRef, ConstructorRef, Object};
     use aptos_framework::primary_fungible_store;
+    use aptos_framework::transaction_context;
 
     friend fraction_addr::liquid_coin;
     friend fraction_addr::liquid_coin_legacy;
     friend fraction_addr::liquid_fungible_asset;
 
+    /// Common logic for creating sticky object for the liquid NFTs
     public(friend) inline fun create_sticky_object(
         caller_address: address
     ): (ConstructorRef, ExtendRef, signer, address) {
@@ -70,5 +75,21 @@ module fraction_addr::common {
         // Mint the supply of the liquid token
         let mint_ref = fungible_asset::generate_mint_ref(constructor);
         primary_fungible_store::mint(&mint_ref, object_address, asset_supply);
+    }
+
+
+    public(friend) inline fun one_nft_in_coins<LiquidCoin>(): u64 {
+        math64::pow(10, (coin::decimals<LiquidCoin>() as u64))
+    }
+
+    public(friend) inline fun one_nft_in_fungible_assets<T: key>(metadata: Object<T>): u64 {
+        math64::pow(10, (fungible_asset::decimals(metadata) as u64))
+    }
+
+    public(friend) inline fun pseudorandom_u64(size: u64): u64 {
+        let auid = transaction_context::generate_auid_address();
+        let bytes = bcs::to_bytes(&auid);
+        let val = from_bcs::to_u256(bytes) % (size as u256);
+        (val as u64)
     }
 }
