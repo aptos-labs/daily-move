@@ -16,15 +16,15 @@ module fraction_addr::liquid_coin {
     use std::signer;
     use std::string::String;
     use std::vector;
-    use aptos_std::math64;
     use aptos_std::smart_vector::{Self, SmartVector};
     use aptos_framework::aptos_account;
     use aptos_framework::coin;
     use aptos_framework::object::{Self, Object, ExtendRef, object_address, is_owner};
     use aptos_token_objects::collection::{Self, Collection};
     use aptos_token_objects::token::{Self, Token as TokenObject};
-    use fraction_addr::common::{one_nft_in_coins, pseudorandom_u64};
-    use fraction_addr::common;
+    use fraction_addr::common::{one_nft_in_coins, pseudorandom_u64, create_sticky_object, create_coin,
+        one_token_from_decimals
+    };
 
     /// Can't create fractionalize digital asset, not owner of collection
     const E_NOT_OWNER_OF_COLLECTION: u64 = 1;
@@ -62,6 +62,7 @@ module fraction_addr::liquid_coin {
         create_liquid_token_internal<LiquidCoin>(caller, collection, asset_name, asset_symbol, decimals);
     }
 
+    /// Internal function to create the liquid token to help with testing
     fun create_liquid_token_internal<LiquidCoin>(
         caller: &signer,
         collection: Object<Collection>,
@@ -77,19 +78,19 @@ module fraction_addr::liquid_coin {
         let maybe_collection_supply = collection::count(collection);
         assert!(option::is_some(&maybe_collection_supply), E_NOT_FIXED_SUPPLY);
         let collection_supply = option::destroy_some(maybe_collection_supply);
-        let asset_supply = collection_supply * math64::pow(10, (decimals as u64));
+        let asset_supply = collection_supply * one_token_from_decimals(decimals);
 
         // Build the object to hold the liquid token
         // This must be a sticky object (a non-deleteable object) to be fungible
-        let (_, extend_ref, object_signer, object_address) = common::create_sticky_object(caller_address);
+        let (_, extend_ref, object_signer, object_address) = create_sticky_object(caller_address);
 
         // Mint the supply of the liquid token, destroying the mint capability afterwards
-        common::create_coin<LiquidCoin>(caller, asset_name, asset_symbol, decimals, asset_supply, object_address);
+        create_coin<LiquidCoin>(caller, asset_name, asset_symbol, decimals, asset_supply, object_address);
 
+        // Add the Metadata, and return the object
         move_to(&object_signer, LiquidCoinMetadata<LiquidCoin> {
             collection, extend_ref, token_pool: smart_vector::new()
         });
-
         object::address_to_object(object_address)
     }
 
@@ -112,15 +113,15 @@ module fraction_addr::liquid_coin {
         coin::transfer<LiquidCoin>(caller, object_address, redeem_amount);
 
         // Transfer tokens
+        let liquid_token = borrow_global_mut<LiquidCoinMetadata<LiquidCoin>>(object_address);
+        let num_tokens = smart_vector::length(&liquid_token.token_pool);
         for (i in 0..count) {
-            let liquid_token = borrow_global_mut<LiquidCoinMetadata<LiquidCoin>>(object_address);
-            let num_tokens = smart_vector::length(&liquid_token.token_pool);
-
             // Transfer random token to caller
             let random_nft_index = pseudorandom_u64(num_tokens);
             let token = smart_vector::swap_remove(&mut liquid_token.token_pool, random_nft_index);
             let object_signer = object::generate_signer_for_extending(&liquid_token.extend_ref);
             object::transfer(&object_signer, token, caller_address);
+            num_tokens = num_tokens - 1;
         }
     }
 
@@ -163,37 +164,23 @@ module fraction_addr::liquid_coin {
     #[test_only]
     use std::string;
     #[test_only]
-    use aptos_std::string_utils;
-    #[test_only]
-    use aptos_framework::account::create_account_for_test;
-    #[test_only]
-    use aptos_framework::genesis;
-    #[test_only]
-    use aptos_token_objects::token::Token;
+    use fraction_addr::common::{setup_test, create_token_objects_collection, create_token_objects};
 
     #[test_only]
     struct TestToken {}
 
     #[test_only]
-    const COLLECTION_NAME: vector<u8> = b"MyCollection";
-    #[test_only]
     const ASSET_NAME: vector<u8> = b"LiquidToken";
     #[test_only]
     const ASSET_SYMBOL: vector<u8> = b"L-NFT";
-    #[test_only]
-    const TOKEN_NAME: vector<u8> = b"Token";
 
     #[test(creator = @fraction_addr, collector = @0xbeef)]
     fun test_nft_e2e(creator: &signer, collector: &signer) acquires LiquidCoinMetadata {
-        genesis::setup();
-        let creator_address = signer::address_of(creator)  ;
-        let collector_address = signer::address_of(collector);
-        create_account_for_test(creator_address);
-        create_account_for_test(collector_address);
+        let (_, collector_address) = setup_test(creator, collector);
 
-        // Setup collection
-        let collection = create_collection(creator);
-        let tokens = create_tokens(creator, collector);
+        // Setup collection, moving all to a collector
+        let collection = create_token_objects_collection(creator);
+        let tokens = create_token_objects(creator, collector);
 
         // Create liquid token
         let metadata_object = create_liquid_token_internal<TestToken>(
@@ -207,62 +194,54 @@ module fraction_addr::liquid_coin {
 
         // Liquify some tokens
         assert!(!coin::is_account_registered<TestToken>(collector_address), 0);
-
         liquify(collector, metadata_object, vector[*vector::borrow(&tokens, 0), *vector::borrow(&tokens, 2)]);
 
+        // The tokens should now be in the contract
         assert!(coin::balance<TestToken>(collector_address) == 2 * one_nft_in_coins<TestToken>(), 2);
-
         let metadata = borrow_global<LiquidCoinMetadata<TestToken>>(object_address);
         assert!(2 == smart_vector::length(&metadata.token_pool), 3);
 
         // Claim the NFTs back
         claim(collector, metadata_object, 2);
 
+        // Tokens should be back with the collector
         assert!(coin::balance<TestToken>(collector_address) == 0, 4);
         let metadata = borrow_global<LiquidCoinMetadata<TestToken>>(object_address);
         assert!(0 == smart_vector::length(&metadata.token_pool), 5);
     }
 
-    #[test_only]
-    fun create_collection(creator: &signer): Object<Collection> {
-        let constructor = collection::create_fixed_collection(
-            creator,
-            string::utf8(b""),
-            5,
-            string::utf8(COLLECTION_NAME),
-            option::none(),
-            string::utf8(b""),
+    #[test(creator = @fraction_addr, collector = @0xbeef)]
+    #[expected_failure(abort_code = E_NOT_OWNER_OF_COLLECTION, location = Self)]
+    fun test_not_owner_of_collection(creator: &signer, collector: &signer) {
+        let (_, _) = setup_test(creator, collector);
+
+        // Setup collection, moving all to a collector
+        let collection = create_token_objects_collection(creator);
+        create_token_objects(creator, collector);
+        create_liquid_token_internal<TestToken>(
+            collector,
+            collection,
+            string::utf8(ASSET_NAME),
+            string::utf8(ASSET_SYMBOL),
+            8,
         );
-        object::object_from_constructor_ref(&constructor)
     }
 
-    #[test_only]
-    fun create_tokens(creator: &signer, collector: &signer): vector<Object<Token>> {
-        let tokens = vector[];
-        let collection_name = string::utf8(COLLECTION_NAME);
-        let collector_address = signer::address_of(collector);
-        for (i in 0..5) {
-            let name = token_name(i);
-            let constructor = token::create(
-                creator,
-                collection_name,
-                string::utf8(b""),
-                name,
-                option::none(),
-                string::utf8(b""),
-            );
+    #[test(creator = @fraction_addr, collector = @0xbeef)]
+    #[expected_failure(abort_code = E_NOT_OWNER_OF_TOKEN, location = Self)]
+    fun test_not_owner_of_token(creator: &signer, collector: &signer) acquires LiquidCoinMetadata {
+        let (_, _) = setup_test(creator, collector);
 
-            let token = object::object_from_constructor_ref(&constructor);
-            vector::push_back(&mut tokens, token);
-
-            object::transfer(creator, token, collector_address);
-        };
-
-        tokens
-    }
-
-    #[test_only]
-    fun token_name(i: u64): String {
-        string_utils::format2(&b"{}:{}", string::utf8(TOKEN_NAME), i)
+        // Setup collection, moving all to a collector
+        let collection = create_token_objects_collection(creator);
+        let tokens = create_token_objects(creator, collector);
+        let metadata_object = create_liquid_token_internal<TestToken>(
+            creator,
+            collection,
+            string::utf8(ASSET_NAME),
+            string::utf8(ASSET_SYMBOL),
+            8,
+        );
+        liquify(creator, metadata_object, tokens);
     }
 }
