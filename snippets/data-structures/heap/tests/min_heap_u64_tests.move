@@ -2,12 +2,12 @@
 /// This is a test only module specifically for holding tests, it will not be compiled into a published module
 module deploy_addr::min_heap_u64_tests {
     use std::vector;
-    use deploy_addr::min_heap_u64::{Self, heap_sort, from_vec};
+    use deploy_addr::min_heap_u64::{Self, heap_sort};
 
     #[test]
-    /// Tests various sucessful heap sort operations
-    fun test_sort() {
-        let heaps = vector[
+    /// Tests various sucessful heap operations
+    fun test_heap_creation() {
+        let inputs = vector[
             vector[],
             vector[0],
             vector[0, 0],
@@ -25,9 +25,37 @@ module deploy_addr::min_heap_u64_tests {
             vector[10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
             vector[5, 1, 2, 4, 2, 99, 0, 1, 1, 234, 525, 123, 2, 21313, 5455, 0, 0, 523]
         ];
-        vector::for_each(heaps, |heap| {
-            heap_sort(&mut heap);
-            check_order(&heap)
+        vector::for_each(inputs, |input| {
+            let heap = min_heap_u64::from_vec(input);
+            let output = min_heap_u64::to_vec(heap);
+            is_heap_ordered(&output)
+        })
+    }
+
+    #[test]
+    /// Tests various sucessful heap operations
+    fun test_heap_sort() {
+        let inputs = vector[
+            vector[],
+            vector[0],
+            vector[0, 0],
+            vector[0, 1],
+            vector[1, 0],
+            vector[1, 0, 0],
+            vector[1, 1, 0],
+            vector[1, 1, 1],
+            vector[0, 1, 1],
+            vector[0, 0, 1],
+            vector[0, 0, 0, 1],
+            vector[0, 0, 1, 1],
+            vector[0, 1, 1, 1],
+            vector[1, 1, 1, 1],
+            vector[10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+            vector[5, 1, 2, 4, 2, 99, 0, 1, 1, 234, 525, 123, 2, 21313, 5455, 0, 0, 523]
+        ];
+        vector::for_each(inputs, |input| {
+            let sorted = heap_sort(input);
+            is_vec_sorted(&sorted)
         })
     }
 
@@ -67,17 +95,6 @@ module deploy_addr::min_heap_u64_tests {
     }
 
     #[test]
-    fun heap_sort_e2e_test() {
-        let vec = vector[2, 3, 4, 5, 1, 0];
-        let heap = from_vec(vec);
-
-        assert!(!min_heap_u64::is_empty(&heap), 1);
-
-        let new_vec = min_heap_u64::to_vec(heap);
-        check_order(&new_vec);
-    }
-
-    #[test]
     /// Tests the check order function to ensure that in order heaps are correctly followed
     fun test_check_order() {
         let heaps = vector[
@@ -93,7 +110,7 @@ module deploy_addr::min_heap_u64_tests {
             vector[1, 1, 1],
         ];
         vector::for_each(heaps, |heap| {
-            check_order(&heap)
+            is_heap_ordered(&heap)
         })
     }
 
@@ -101,18 +118,18 @@ module deploy_addr::min_heap_u64_tests {
     #[expected_failure(abort_code = 1, location = Self)]
     /// Checks that a left child will fail if out of order
     fun test_check_false() {
-        check_order(&vector[1, 0])
+        is_heap_ordered(&vector[1, 0])
     }
 
     #[test]
     #[expected_failure(abort_code = 2, location = Self)]
     /// Checks that a right child will fail if out of order
     fun test_check_false_2() {
-        check_order(&vector[1, 1, 0])
+        is_heap_ordered(&vector[1, 1, 0])
     }
 
     /// Helper function to check the order of a heap
-    inline fun check_order(heap: &vector<u64>) {
+    fun is_heap_ordered(heap: &vector<u64>) {
         let length = vector::length(heap);
         for (i in 0..length) {
             let left = 2 * i + 1;
@@ -128,6 +145,20 @@ module deploy_addr::min_heap_u64_tests {
                 let right_val = *vector::borrow(heap, right);
                 assert!(cur <= right_val, 2);
             }
+        }
+    }
+
+
+    /// Helper function to check the sorting of a vec
+    fun is_vec_sorted(input: &vector<u64>) {
+        let length = vector::length(input);
+        if (length == 0) { return };
+
+        let previous = vector::borrow(input, 0);
+        for (i in 1..length) {
+            let cur = vector::borrow(input, i);
+            assert!(*previous <= *cur, 99);
+            previous = cur;
         }
     }
 }

@@ -21,11 +21,25 @@ module deploy_addr::min_heap_u64 {
         inner: vector<u64>
     }
 
-    /// In-place sorts a vector
+    /// Sorts a vector
     ///
     /// Runtime complexity: O(nlog(n))
+    /// Extra space: O(n)
+    public fun heap_sort(self: vector<u64>): vector<u64> {
+        let heap = from_vec(self);
+        let ret = vector[];
+        let length = size(&heap);
+        for (i in 0..length) {
+            vector::push_back(&mut ret, pop(&mut heap));
+        };
+
+        ret
+    }
+
+    /// In place makes the array a heap
+    /// Runtime complexity: O(nlog(n))
     /// Extra space: O(1)
-    public fun heap_sort(self: &mut vector<u64>) {
+    fun heapify_all(self: &mut vector<u64>) {
         let size = vector::length(self);
 
         // Heapify from bottom of heap to top
@@ -49,7 +63,7 @@ module deploy_addr::min_heap_u64 {
     ///
     /// Sorts the heap prior to parsing, to ensure it's correctly sorted
     public fun from_vec(vec: vector<u64>): MinHeap {
-        heap_sort(&mut vec);
+        heapify_all(&mut vec);
 
         MinHeap { inner: vec }
     }
