@@ -90,9 +90,6 @@ module deploy_addr::min_heap_u64 {
         heapify_heap(self, 0);
         ret
     }
-    spec pop(self: &mut MinHeap): u64 {
-        requires len(self.inner) > 0;
-    }
 
     /// Gets the minimum of the heap (top)
     public fun min(self: &MinHeap): u64 {
