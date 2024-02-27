@@ -3,13 +3,12 @@
 /// This gives an example of a min heap https://en.wikipedia.org/wiki/Heap_(data_structure)
 ///
 /// A max heap can be handled similarly by changing the comparisons before swapping
-module deploy_addr::min_heap {
+module deploy_addr::min_heap_u64 {
     spec module {
         pragma verify = true;
     }
 
-    use std::option;
-    use std::option::Option;
+    use std::option::{Self, Option};
     use std::vector;
 
     /// Heap is empty
@@ -21,8 +20,6 @@ module deploy_addr::min_heap {
     struct MinHeap has store, drop {
         inner: vector<u64>
     }
-
-    spec MinHeap {}
 
     /// In-place sorts a vector
     ///
@@ -38,8 +35,6 @@ module deploy_addr::min_heap {
             root = root - 1;
         };
     }
-
-    spec heap_sort(self: &mut vector<u64>) {}
 
     /// Creates an empty heap
     public fun new(): MinHeap {
@@ -58,7 +53,6 @@ module deploy_addr::min_heap {
 
         MinHeap { inner: vec }
     }
-    spec from_vec(vec: vector<u64>): MinHeap {}
 
     /// Converts the heap to a vector
     public fun to_vec(heap: MinHeap): vector<u64> {
@@ -74,7 +68,6 @@ module deploy_addr::min_heap {
         vector::insert(&mut self.inner, 0, value);
         heapify_heap(self, 0)
     }
-    spec insert(self: &mut MinHeap, value: u64) {}
 
     /// Inserts into the heap sorted
     public fun pop(self: &mut MinHeap): u64 {
@@ -126,9 +119,6 @@ module deploy_addr::min_heap {
     ///
     /// This happens by checking the root against both children, and swapping the smallest to the root
     fun heapify(array: &mut vector<u64>, size: u64, root: u64) {
-        // Base case, ensure that it doesn't crash if there's nothing left
-        if (size == 0 || root >= size) { return };
-
         // Iteratively find the smallest from the top to the bottom of the heap
         let current_root = root;
         while (current_root < size) {
@@ -139,13 +129,9 @@ module deploy_addr::min_heap {
         }
     }
 
-    spec heapify(array: &mut vector<u64>, size: u64, root: u64) {}
-
     /// A self contained piece of heapify to allow specifications directly on it
     /// for gas purposes, it would be better to inline, but we can't add specs directly to inline
     fun heapify_inner(array: &mut vector<u64>, size: u64, root: u64): Option<u64> {
-        if (root >= size) { return option::none() };
-
         // Initialize smallest as the current root
         let smallest = root;
         let smallest_value = *vector::borrow(array, smallest);

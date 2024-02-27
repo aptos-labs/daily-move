@@ -1,8 +1,8 @@
 #[test_only]
 /// This is a test only module specifically for holding tests, it will not be compiled into a published module
-module deploy_addr::min_heap_tests {
+module deploy_addr::min_heap_u64_tests {
     use std::vector;
-    use deploy_addr::min_heap::{Self, heap_sort, from_vec};
+    use deploy_addr::min_heap_u64::{Self, heap_sort, from_vec};
 
     #[test]
     /// Tests various sucessful heap sort operations
@@ -22,6 +22,7 @@ module deploy_addr::min_heap_tests {
             vector[0, 0, 1, 1],
             vector[0, 1, 1, 1],
             vector[1, 1, 1, 1],
+            vector[10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
             vector[5, 1, 2, 4, 2, 99, 0, 1, 1, 234, 525, 123, 2, 21313, 5455, 0, 0, 523]
         ];
         vector::for_each(heaps, |heap| {
@@ -32,37 +33,37 @@ module deploy_addr::min_heap_tests {
 
     #[test]
     fun heap_e2e_test() {
-        let heap = min_heap::new();
-        assert!(min_heap::is_empty(&heap), 1);
-        min_heap::insert(&mut heap, 2);
-        assert!(min_heap::min(&heap) == 2, 1);
-        min_heap::insert(&mut heap, 1);
-        assert!(min_heap::min(&heap) == 1, 1);
-        min_heap::insert(&mut heap, 0);
-        assert!(min_heap::min(&heap) == 0, 1);
-        min_heap::insert(&mut heap, 0);
-        assert!(min_heap::min(&heap) == 0, 1);
+        let heap = min_heap_u64::new();
+        assert!(min_heap_u64::is_empty(&heap), 1);
+        min_heap_u64::insert(&mut heap, 2);
+        assert!(min_heap_u64::min(&heap) == 2, 1);
+        min_heap_u64::insert(&mut heap, 1);
+        assert!(min_heap_u64::min(&heap) == 1, 1);
+        min_heap_u64::insert(&mut heap, 0);
+        assert!(min_heap_u64::min(&heap) == 0, 1);
+        min_heap_u64::insert(&mut heap, 0);
+        assert!(min_heap_u64::min(&heap) == 0, 1);
 
-        assert!(!min_heap::is_empty(&heap), 1);
-        assert!(4 == min_heap::size(&heap), 1);
-        assert!(0 == min_heap::pop(&mut heap), 2);
-        assert!(0 == min_heap::pop(&mut heap), 2);
-        assert!(1 == min_heap::pop(&mut heap), 2);
-        assert!(2 == min_heap::pop(&mut heap), 2);
+        assert!(!min_heap_u64::is_empty(&heap), 1);
+        assert!(4 == min_heap_u64::size(&heap), 1);
+        assert!(0 == min_heap_u64::pop(&mut heap), 2);
+        assert!(0 == min_heap_u64::pop(&mut heap), 2);
+        assert!(1 == min_heap_u64::pop(&mut heap), 2);
+        assert!(2 == min_heap_u64::pop(&mut heap), 2);
     }
 
     #[test]
-    #[expected_failure(abort_code = 1, location = min_heap)]
+    #[expected_failure(abort_code = 1, location = min_heap_u64)]
     /// Checks that a left child will fail if out of order
     fun test_pop_empty() {
-        min_heap::pop(&mut min_heap::new());
+        min_heap_u64::pop(&mut min_heap_u64::new());
     }
 
     #[test]
-    #[expected_failure(abort_code = 1, location = min_heap)]
+    #[expected_failure(abort_code = 1, location = min_heap_u64)]
     /// Checks that a left child will fail if out of order
     fun test_min_empty() {
-        min_heap::min(&mut min_heap::new());
+        min_heap_u64::min(&mut min_heap_u64::new());
     }
 
     #[test]
@@ -70,9 +71,9 @@ module deploy_addr::min_heap_tests {
         let vec = vector[2, 3, 4, 5, 1, 0];
         let heap = from_vec(vec);
 
-        assert!(!min_heap::is_empty(&heap), 1);
+        assert!(!min_heap_u64::is_empty(&heap), 1);
 
-        let new_vec = min_heap::to_vec(heap);
+        let new_vec = min_heap_u64::to_vec(heap);
         check_order(&new_vec);
     }
 
