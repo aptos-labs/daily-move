@@ -30,17 +30,20 @@ module deploy_addr::modify_nfts {
     /// A URI we're using here for the demo, this could be anything, mp4, ipfs, svg, png, gif, jpg, etc.
     const URI: vector<u8> = b"https://aptosfoundation.org/_next/static/media/globe.f620f2d6.svg";
 
+    #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     /// A struct holding items to control properties of a collection
     struct CollectionController has key {
         extend_ref: object::ExtendRef,
         mutator_ref: collection::MutatorRef,
     }
 
+    #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     /// A struct for representing extension of a collection
     struct CollectionPoints has key {
         total_points: u64
     }
 
+    #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     /// A struct holding items to control properties of a token
     struct TokenController has key {
         extend_ref: object::ExtendRef,
@@ -48,6 +51,7 @@ module deploy_addr::modify_nfts {
         burn_ref: token::BurnRef,
     }
 
+    #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     /// A struct for representing extension of a token
     struct TokenPoints has key {
         points: u64

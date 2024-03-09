@@ -42,6 +42,7 @@ module fraction_addr::liquid_coin_legacy {
     /// Can't liquify, token not an NFT
     const E_NOT_A_NON_FUNGIBLE_TOKEN: u64 = 7;
 
+    #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     /// Metadata for a liquidity token for a collection
     struct LiquidCoinMetadata<phantom LiquidCoin> has key {
         creator: address,

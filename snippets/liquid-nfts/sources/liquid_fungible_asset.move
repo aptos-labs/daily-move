@@ -37,6 +37,7 @@ module fraction_addr::liquid_fungible_asset {
     /// Token being liquified is not in the collection for the LiquidToken
     const E_NOT_IN_COLLECTION: u64 = 6;
 
+    #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     /// Metadata for a liquidity token for a collection
     struct LiquidTokenMetadata has key {
         /// The collection associated with the liquid token
