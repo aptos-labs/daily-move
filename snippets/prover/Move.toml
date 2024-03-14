@@ -1,0 +1,17 @@
+[package]
+name = "prover-example"
+version = "1.0.0"
+authors = []
+
+[addresses]
+deployer = "_"
+
+[dev-addresses]
+deployer = "0x12345"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dev-dependencies]
