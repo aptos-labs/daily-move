@@ -4,11 +4,8 @@
 /// cancel the payment before it's withdrawn.  Additionally, the reciever
 /// can either transfer the payment to someone else, reject it, or withdraw
 /// it.
-<<<<<<< HEAD
-=======
 ///
 /// To run the prover, run `aptos move prove --dev`
->>>>>>> 25838f1 ([prover] Add a prover example with a simple escrow contract)
 module deployer::payment_escrow {
     spec module {
         pragma verify = true;
@@ -109,10 +106,7 @@ module deployer::payment_escrow {
 
     /// Create the object, and move coins into it
     fun create_escrow_object<CoinType>(caller: &signer, amount: u64): Object<Escrow<CoinType>> {
-<<<<<<< HEAD
-=======
         // Comment out the line below to show how proving can fail
->>>>>>> 25838f1 ([prover] Add a prover example with a simple escrow contract)
         assert!(amount > 0, E_CANT_ESCROW_ZERO);
         let caller_address = signer::address_of(caller);
         let constructor_ref = object::create_object(caller_address);
