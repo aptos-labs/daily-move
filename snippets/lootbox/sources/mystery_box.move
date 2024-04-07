@@ -322,7 +322,6 @@ module mystery_addr::mystery_box {
         })
     }
 
-    /// Creates a box with all the possible inputs
     public entry fun create_multi_box<CoinType1, CoinType2, CoinType3>(
         caller: &signer,
         registry_obj: Object<MysteryBoxRegistry>,
@@ -340,13 +339,13 @@ module mystery_addr::mystery_box {
         let types = vector[];
         let num_coins = vector::length(&coin_amounts);
         assert!(num_coins <= 3, E_TOO_MANY_COIN_TYPES);
-        for (_ in 0..num_coins) {
+        for (_i in 0..num_coins) {
             vector::push_back(&mut types, COIN_TYPE);
         };
 
         let num_fa = vector::length(&fa_amounts);
         assert!(num_fa != vector::length(&fa_metadatas), E_FA_LENGTH_MISMATCH);
-        for (_ in 0..num_fa) {
+        for (_i in 0..num_fa) {
             vector::push_back(&mut types, FA_TYPE);
         };
 
@@ -357,45 +356,45 @@ module mystery_addr::mystery_box {
             ),
             E_LEGACY_TOKEN_LENGTH_MISMATCH
         );
-        for (_ in 0..num_legacy_token) {
+        for (_i in 0..num_legacy_token) {
             vector::push_back(&mut types, LEGACY_TOKEN_TYPE);
         };
 
         let num_digital_assets = vector::length(&digital_assets);
-        for (_ in 0..num_digital_assets) {
+        for (_i in 0..num_digital_assets) {
             vector::push_back(&mut types, DA_TYPE);
         };
 
         // Build box, and add all associated items
         let box_signer = create_box(registry_address, types);
         if (num_coins > 0) {
-            add_coin<CoinType1>(&box_signer, caller, coin_amounts[0])
+            add_coin<CoinType1>(&box_signer, caller, *vector::borrow(&coin_amounts, 0))
         };
         if (num_coins > 1) {
-            add_coin<CoinType2>(&box_signer, caller, coin_amounts[1])
+            add_coin<CoinType2>(&box_signer, caller, *vector::borrow(&coin_amounts, 1))
         };
         if (num_coins > 2) {
-            add_coin<CoinType3>(&box_signer, caller, coin_amounts[2])
+            add_coin<CoinType3>(&box_signer, caller, *vector::borrow(&coin_amounts, 2))
         };
         for (i in 0..num_fa) {
-            add_fungible_asset(&box_signer, caller, fa_metadatas[i], fa_amounts[i])
+            add_fungible_asset(&box_signer, caller, *vector::borrow(&fa_metadatas, i), *vector::borrow(&fa_amounts, i))
         };
         for (i in 0..num_legacy_token) {
             add_legacy_token(
                 &box_signer,
                 caller,
-                legacy_token_creator_addresses[i],
-                legacy_token_collection_names[i],
-                legacy_token_token_names[i]
+                *vector::borrow(&legacy_token_creator_addresses, i),
+                *vector::borrow(&legacy_token_collection_names, i),
+                *vector::borrow(&legacy_token_token_names, i)
             )
         };
-        for (i in 0..num_digital_assets) {
+        vector::for_each(digital_assets, |digital_asset| {
             add_digital_asset(
                 &box_signer,
                 caller,
-                digital_assets[i]
+                digital_asset
             )
-        };
+        });
 
         // Store the box into the registry
         let box_object = object::address_to_object(signer::address_of(&box_signer));
