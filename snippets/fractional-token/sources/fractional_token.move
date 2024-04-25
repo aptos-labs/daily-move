@@ -14,7 +14,7 @@ module fraction_addr::fractional_token {
     use aptos_std::string_utils;
     use aptos_framework::fungible_asset;
     use aptos_framework::fungible_asset::{Metadata, BurnRef};
-    use aptos_framework::object::{Self, Object, ExtendRef};
+    use aptos_framework::object::{Self, Object, ExtendRef, TransferRef};
     use aptos_framework::primary_fungible_store;
     use aptos_token_objects::token::{Self, Token as TokenObject};
 
@@ -25,6 +25,8 @@ module fraction_addr::fractional_token {
     /// Metadata object isn't for a fractionalized digital asset
     const E_NOT_FRACTIONALIZED_DIGITAL_ASSET: u64 = 2;
 
+    const OBJECT_SEED: vector<u8> = b"Random seed";
+
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     /// A locker for a digital asset and fractionalizes it accordingly
     struct FractionalDigitalAsset has key {
@@ -34,6 +36,8 @@ module fraction_addr::fractional_token {
         extend_ref: ExtendRef,
         /// For burning the tokens at the end
         burn_ref: BurnRef,
+        /// For locking/unlocking the token from the object containing the token
+        transfer_ref: TransferRef,
     }
 
     /// Fractionalizes an asset.  We specifically keep it below u128 for simplicity
@@ -47,8 +51,8 @@ module fraction_addr::fractional_token {
         let asset_uri = token::uri(asset);
 
         // Build the object to hold the fractionalized asset
-        // This must be a sticky object (a non-deleteable object) to be fungible
-        let constructor = object::create_sticky_object(caller_address);
+        // This must be a named object (a non-deleteable object) to be fungible
+        let constructor = object::create_named_object(caller, OBJECT_SEED);
         let extend_ref = object::generate_extend_ref(&constructor);
         let object_signer = object::generate_signer(&constructor);
         let object_address = object::address_from_constructor_ref(&constructor);
@@ -71,10 +75,14 @@ module fraction_addr::fractional_token {
         // Add mint and burn refs, to be able to burn the shares at the end.
         let mint_ref = fungible_asset::generate_mint_ref(&constructor);
         let burn_ref = fungible_asset::generate_burn_ref(&constructor);
+        let transfer_ref = object::generate_transfer_ref(&constructor);
+        object::disable_ungated_transfer(&transfer_ref);
+
         move_to(&object_signer, FractionalDigitalAsset {
             asset,
             extend_ref,
             burn_ref,
+            transfer_ref,
         });
 
         // Lock asset up in the object
@@ -99,20 +107,37 @@ module fraction_addr::fractional_token {
         let total_supply = (option::destroy_some(fungible_asset::supply(metadata_object)) as u64);
         assert!(caller_balance == total_supply, E_NOT_COMPLETE_OWNER);
 
+        let FractionalDigitalAsset {
+            asset,
+            extend_ref,
+            burn_ref,
+            transfer_ref,
+        } = move_from<FractionalDigitalAsset>(metadata_object_address);
+
+        let object_signer = &object::generate_signer_for_extending(&extend_ref);
         // Move the asset back to the owner
-        let asset_object = borrow_global<FractionalDigitalAsset>(metadata_object_address);
-        let object_signer = object::generate_signer_for_extending(&asset_object.extend_ref);
-        object::transfer(&object_signer, asset_object.asset, caller_address);
+        object::enable_ungated_transfer(&transfer_ref);
+        object::transfer(object_signer, asset, caller_address);
 
         // Burn the digital assets, then destroy as much as possible to recoop gas
-        primary_fungible_store::burn(&asset_object.burn_ref, caller_address, total_supply);
-        let FractionalDigitalAsset {
-            asset: _,
-            extend_ref: _,
-            burn_ref: _,
-        } = move_from<FractionalDigitalAsset>(metadata_object_address);
+        primary_fungible_store::burn(&burn_ref, caller_address, total_supply);
 
         // Note that the fungible asset metadata will stay around forever in the object, but no actual fungible assets
         // will exist.
+    }
+
+    #[view]
+    public fun metadata_object_address(caller: &signer): address {
+        object::create_object_address(&signer::address_of(caller), OBJECT_SEED)
+    }
+
+    #[test_only]
+    public fun fractionalize_asset_test_only(caller: &signer, asset: Object<TokenObject>, supply: u64) {
+        fractionalize_asset(caller, asset, supply);
+    }
+
+    #[test_only]
+    public fun recombine_asset_test_only(caller: &signer, metadata_object: Object<Metadata>) acquires FractionalDigitalAsset {
+        recombine_asset(caller, metadata_object);
     }
 }
