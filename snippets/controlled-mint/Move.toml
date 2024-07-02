@@ -1,0 +1,20 @@
+[package]
+name = "controlled-mint"
+version = "0.1.0"
+authors = []
+
+[addresses]
+deploy_addr = "_"
+
+[dev-addresses]
+deploy_addr = "0x99"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-framework"
+
+[dependencies.AptosTokenObjects]
+git = "https://github.com/aptos-labs/aptos-core.git"
+rev = "mainnet"
+subdir = "aptos-move/framework/aptos-token-objects"
