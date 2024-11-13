@@ -1,0 +1,17 @@
+[package]
+name = "fa-lockup-example"
+version = "1.0.0"
+authors = []
+
+[addresses]
+lockup_deployer = "_"
+
+[dev-addresses]
+lockup_deployer = "0xbeef"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-framework.git"
+rev = "mainnet"
+subdir = "aptos-framework"
+
+[dev-dependencies]
