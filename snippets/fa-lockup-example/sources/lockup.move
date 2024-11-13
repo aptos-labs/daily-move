@@ -4,12 +4,13 @@
 /// 1. There is a `LockupRef`, which is stored in the account being paid to.  It keeps track of the Lockup object.
 /// 2. There is a `Lockup` object, which keeps track of all escrow objects currently running
 ///
+/// To test `aptos move test --move-2 --dev`
+///
 /// TODO: Add cleanup for `Lookup`
 /// TODO: Add Tree instead of SmartTable as an option in the future
 module lockup_deployer::fa_lockup {
 
-    use std::option;
-    use std::option::Option;
+    use std::option::{Self, Option};
     use std::signer;
     use aptos_std::smart_table::{Self, SmartTable};
     use aptos_framework::dispatchable_fungible_asset;
