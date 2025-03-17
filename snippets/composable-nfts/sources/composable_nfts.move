@@ -198,12 +198,12 @@ module deploy_addr::composable_nfts {
         object::transfer(caller, hat_object, face_address);
 
         // Attach hat to face
-        let face = borrow_global_mut<Face>(face_address);
-        assert!(option::is_none(&face.hat), E_HAT_ALREADY_ON);
-        option::fill(&mut face.hat, hat_object);
+        let face = &mut Face[face_address];
+        assert!(face.hat.is_none(), E_HAT_ALREADY_ON);
+        face.hat.fill(hat_object);
 
-        let hat = borrow_global<Hat>(hat_address);
-        let token_controller = borrow_global<TokenController>(face_address);
+        let hat = &Hat[hat_address];
+        let token_controller = &TokenController[face_address];
 
         // Update the URI for the dynamic nFT
         // TODO: Support more hats
@@ -220,9 +220,9 @@ module deploy_addr::composable_nfts {
         );
 
         // Disable transfer of hat (so it stays attached)
-        let hat_controller = borrow_global<ObjectController>(hat_address);
-        assert!(option::is_some(&hat_controller.transfer_ref), E_NO_TRANSFER_REF);
-        let hat_transfer_ref = option::borrow(&hat_controller.transfer_ref);
+        let hat_controller = &ObjectController[hat_address];
+        assert!(hat_controller.transfer_ref.is_some(), E_NO_TRANSFER_REF);
+        let hat_transfer_ref = hat_controller.transfer_ref.borrow();
         object::disable_ungated_transfer(hat_transfer_ref);
     }
 
@@ -239,25 +239,25 @@ module deploy_addr::composable_nfts {
         let face_address = object::object_address(&face_object);
 
         // Remove hat
-        let face = borrow_global_mut<Face>(face_address);
-        assert!(option::is_some(&face.hat), E_NO_HAT_ON);
-        let hat_object = option::extract(&mut face.hat);
+        let face = &mut Face[face_address];
+        assert!(face.hat.is_some(), E_NO_HAT_ON);
+        let hat_object = face.hat.extract();
         assert!(object::owner(hat_object) == face_address, E_HAT_NOT_OWNED_BY_FACE);
 
         // Remove hat from description
-        let token_controller = borrow_global<TokenController>(face_address);
+        let token_controller = &TokenController[face_address];
         token::set_description(&token_controller.mutator_ref, string::utf8(FACE_WIFOUT_HAT));
         token::set_uri(&token_controller.mutator_ref, string::utf8(FACE_URI));
 
         // Re-enable ability to transfer hat
         let hat_address = object::object_address(&hat_object);
-        let hat_controller = borrow_global<ObjectController>(hat_address);
-        assert!(option::is_some(&hat_controller.transfer_ref), E_NO_TRANSFER_REF);
-        let hat_transfer_ref = option::borrow(&hat_controller.transfer_ref);
+        let hat_controller = &ObjectController[hat_address];
+        assert!(hat_controller.transfer_ref.is_some(), E_NO_TRANSFER_REF);
+        let hat_transfer_ref = hat_controller.transfer_ref.borrow();
         object::enable_ungated_transfer(hat_transfer_ref);
 
         // Return hat to user
-        let face_controller = borrow_global<ObjectController>(face_address);
+        let face_controller = &ObjectController[face_address];
         let face_signer = object::generate_signer_for_extending(&face_controller.extend_ref);
         object::transfer(&face_signer, hat_object, caller_address);
     }
@@ -277,16 +277,14 @@ module deploy_addr::composable_nfts {
     /// Tells us if a face has a hat
     fun has_hat(face_object: Object<Face>): bool acquires Face {
         let face_address = object::object_address(&face_object);
-        let face = borrow_global<Face>(face_address);
-        option::is_some(&face.hat)
+        Face[face_address].hat.is_some()
     }
 
     #[view]
     /// Show's the address if the face has a hat
     fun hat_address(face_object: Object<Face>): Object<Hat> acquires Face {
         let face_address = object::object_address(&face_object);
-        let face = borrow_global<Face>(face_address);
-        *option::borrow(&face.hat)
+        *Face[face_address].hat.borrow()
     }
 
     /// Creates a collection generically with the ability to extend it later
@@ -354,14 +352,9 @@ module deploy_addr::composable_nfts {
     /// This case I'm using it so I can use a reference as a return value when it's inlined
     inline fun get_collection_owner_signer(): &signer {
         let address = object::create_object_address(&@deploy_addr, OBJECT_SEED);
-        let object_controller = borrow_global<ObjectController>(
-            address
-        );
+        let object_controller = &ObjectController[address];
         &object::generate_signer_for_extending(&object_controller.extend_ref)
     }
-
-    #[test_only]
-    use std::features;
 
     #[test_only]
     /// Face not connected
@@ -370,17 +363,12 @@ module deploy_addr::composable_nfts {
     /// Face is connected, and it's not supposed to be
     const E_FACE_CONNECTED: u64 = 23;
 
-    #[test(aptos_framework = @0x1, creator = @deploy_addr, collector = @0xbeef)]
+    #[test(creator = @deploy_addr, collector = @0xbeef)]
     /// Tests minting and putting the hat on the face
     fun test_composability(
-        aptos_framework: &signer,
         creator: &signer,
         collector: &signer
     ) acquires ObjectController, Face, Hat, TokenController {
-        // Enable AUID, features currently have to be enabled manually, but should be
-        // enabled by default in the future
-        features::change_feature_flags(aptos_framework, vector[23], vector[]);
-
         // Setup collections
         setup(creator);
 
