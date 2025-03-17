@@ -6,5 +6,8 @@ authors = []
 [addresses]
 deploy_addr = "_"
 
+[dev-addresses]
+deploy_addr = "0x12345"
+
 [dependencies.dice-roll]
 local = "../dice_roll"
