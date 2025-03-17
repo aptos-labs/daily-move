@@ -10,7 +10,6 @@ module deploy_addr::mailbox {
     use std::option::{Self, Option};
     use std::signer;
     use std::string::String;
-    use std::vector;
     use aptos_std::smart_table::{Self, SmartTable};
     use aptos_std::smart_vector::{Self, SmartVector};
     use aptos_framework::aptos_coin::AptosCoin;
@@ -136,25 +135,25 @@ module deploy_addr::mailbox {
     ) acquires MailboxRouter {
         // Ensure inputs all match in length (token ids will be valid)
         assert!(
-            vector::length(&legacy_token_creator_addresses) == vector::length(&legacy_token_collection_names),
+            legacy_token_creator_addresses.length() == legacy_token_collection_names.length(),
             E_TOKEN_INPUT_LENGTH_MISMATCH
         );
         assert!(
-            vector::length(&legacy_token_creator_addresses) == vector::length(&legacy_token_names),
+            legacy_token_creator_addresses.length() == legacy_token_names.length(),
             E_TOKEN_INPUT_LENGTH_MISMATCH
         );
 
         // Build the token Ids for the Legacy tokens
         let token_ids = vector[];
-        let length = vector::length(&legacy_token_names);
+        let length = legacy_token_names.length();
         for (i in 0..length) {
-            let creator_address = *vector::borrow(&legacy_token_creator_addresses, i);
-            let collection_name = *vector::borrow(&legacy_token_collection_names, i);
-            let token_name = *vector::borrow(&legacy_token_names, i);
+            let creator_address = legacy_token_creator_addresses[i];
+            let collection_name = legacy_token_collection_names[i];
+            let token_name = legacy_token_names[i];
             let data_id = token::create_token_data_id(creator_address, collection_name, token_name);
             let latest_property_version = token::get_tokendata_largest_property_version(creator_address, data_id);
             let token_id = token::create_token_id(data_id, latest_property_version);
-            vector::push_back(&mut token_ids, token_id);
+            token_ids.push_back(token_id);
         };
 
         send_mail_internal(caller, receiver, note, coin_amount, objects, token_ids);
@@ -163,7 +162,7 @@ module deploy_addr::mailbox {
     /// Opens the latest envelope
     entry fun open_latest_envelope(caller: &signer) acquires MailboxRouter {
         let mailbox = get_mailbox(signer::address_of(caller));
-        let length = smart_vector::length(&mailbox.mail);
+        let length = mailbox.mail.length();
         open_envelope(caller, length - 1)
     }
 
@@ -203,20 +202,20 @@ module deploy_addr::mailbox {
         } = envelope;
 
         // Deposit coins, if there were any, these can't be dropped
-        if (option::is_some(&coins)) {
-            coin::deposit(receiver_address, option::destroy_some(coins))
+        if (coins.is_some()) {
+            coin::deposit(receiver_address, coins.destroy_some())
         } else {
-            option::destroy_none(coins);
+            coins.destroy_none();
         };
 
         // Deposit all legacy tokens, these can't be dropped
-        vector::for_each(legacy_tokens, |legacy_token| {
+        legacy_tokens.for_each(|legacy_token| {
             token::deposit_token(receiver, legacy_token);
         });
 
         // Deposit all objects, if this is missed, the objects will be stuck on the router account
         let mailbox_signer = get_mailbox_signer();
-        vector::for_each(objects, |obj| {
+        objects.for_each(|obj| {
             object::transfer(mailbox_signer, obj, receiver_address)
         });
 
@@ -230,15 +229,15 @@ module deploy_addr::mailbox {
 
         let mailbox_id = MailboxId { receiver };
 
-        if (smart_table::contains(&router.mailboxes, mailbox_id)) {
-            let is_empty = smart_vector::is_empty(&smart_table::borrow(&router.mailboxes, mailbox_id).mail);
+        if (router.mailboxes.contains(mailbox_id)) {
+            let is_empty = router.mailboxes.borrow(mailbox_id).mail.is_empty();
             assert!(is_empty, E_MAILBOX_NOT_EMPTY);
 
             // Decompose and destroy mailbox
             let Mailbox {
                 mail,
-            } = smart_table::remove(&mut router.mailboxes, mailbox_id);
-            smart_vector::destroy_empty(mail);
+            } = router.mailboxes.remove(mailbox_id);
+            mail.destroy_empty();
         }
     }
 
@@ -258,12 +257,12 @@ module deploy_addr::mailbox {
         // be done without the middle man
 
         // Transfer all objects to the contract
-        vector::for_each_ref(&objects, |obj| {
+        objects.for_each_ref(|obj| {
             object::transfer(caller, *obj, @deploy_addr);
         });
 
         // Retrieve all tokens for the envelope
-        let legacy_tokens = vector::map(legacy_token_ids, |token_id| {
+        let legacy_tokens = legacy_token_ids.map(|token_id| {
             // For this demo, we'll only consider non-fungible tokens
             token::withdraw_token(caller, token_id, 1)
         });
@@ -281,16 +280,16 @@ module deploy_addr::mailbox {
         let mailbox_id = MailboxId {
             receiver
         };
-        if (!smart_table::contains(&router.mailboxes, mailbox_id)) {
-            smart_table::add(&mut router.mailboxes, mailbox_id, Mailbox {
+        if (!router.mailboxes.contains(mailbox_id)) {
+            router.mailboxes.add(mailbox_id, Mailbox {
                 mail: smart_vector::new(),
             })
         };
 
-        let mailbox = smart_table::borrow_mut(&mut router.mailboxes, mailbox_id);
+        let mailbox = router.mailboxes.borrow_mut(mailbox_id);
 
         // Push the envelope onto the mailbox
-        smart_vector::push_back(&mut mailbox.mail, envelope);
+        mailbox.mail.push_back(envelope);
     }
 
     /// Opens an indexed piece of mail
@@ -298,7 +297,7 @@ module deploy_addr::mailbox {
         let mailbox = get_mailbox_mut(receiver);
 
         // Check that num is removable
-        let length = smart_vector::length(&mailbox.mail);
+        let length = mailbox.mail.length();
         assert!(length > 0, E_MAILBOX_EMPTY); // This is to ensure a friendly message is given when there is no mail
         assert!(num < length, E_OUT_OF_BOUNDS);
 
@@ -307,7 +306,7 @@ module deploy_addr::mailbox {
         // expensive than the newest, but it preserves order.
         //
         // smart_vector::swap_remove can be used, if order doesn't matter
-        smart_vector::remove(&mut mailbox.mail, num)
+        mailbox.mail.remove(num)
     }
 
     #[view]
@@ -315,13 +314,13 @@ module deploy_addr::mailbox {
     fun view_mail(receiver: address, num: u64): Envelope acquires MailboxRouter {
         let mailbox = get_mailbox_mut(receiver);
 
-        smart_vector::remove(&mut mailbox.mail, num)
+        mailbox.mail.remove(num)
     }
 
     /// Retrieve the mailbox router object
     inline fun get_mailbox_router_mut(): &mut MailboxRouter {
         let mailbox_router_address = object::create_object_address(&@deploy_addr, SEED);
-        borrow_global_mut<MailboxRouter>(mailbox_router_address)
+        &mut MailboxRouter[mailbox_router_address]
     }
 
     /// Retrieve the mailbox signer for moving objects around
@@ -336,9 +335,9 @@ module deploy_addr::mailbox {
         let mailbox_id = MailboxId {
             receiver
         };
-        assert!(smart_table::contains(&router.mailboxes, mailbox_id), E_NO_MAILBOX_EXISTS);
+        assert!(router.mailboxes.contains(mailbox_id), E_NO_MAILBOX_EXISTS);
 
-        smart_table::borrow_mut(&mut router.mailboxes, mailbox_id)
+        router.mailboxes.borrow_mut(mailbox_id)
     }
 
     /// Retrieves the mailbox in a non-mutable way
@@ -347,8 +346,8 @@ module deploy_addr::mailbox {
         let mailbox_id = MailboxId {
             receiver
         };
-        assert!(smart_table::contains(&router.mailboxes, mailbox_id), E_NO_MAILBOX_EXISTS);
+        assert!(router.mailboxes.contains(mailbox_id), E_NO_MAILBOX_EXISTS);
 
-        smart_table::borrow(&mut router.mailboxes, mailbox_id)
+        router.mailboxes.borrow(mailbox_id)
     }
 }
