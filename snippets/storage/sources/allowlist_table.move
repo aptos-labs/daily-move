@@ -10,7 +10,6 @@
 module deploy_addr::allowlist_table {
 
     use std::signer;
-    use std::vector;
     use aptos_std::table::{Self, Table};
     use aptos_framework::object::{Self, Object};
     use deploy_addr::object_management;
@@ -50,15 +49,15 @@ module deploy_addr::allowlist_table {
         object_management::check_owner(caller_address, object);
 
         let object_address = object::object_address(&object);
-        let allowlist = borrow_global_mut<Allowlist>(object_address);
+        let allowlist = &mut Allowlist[object_address];
 
-        let accounts_length = vector::length(&accounts);
-        let amounts_length = vector::length(&accounts);
+        let accounts_length = accounts.length();
+        let amounts_length = accounts.length();
         assert!(accounts_length == amounts_length, E_VECTOR_MISMATCH);
         for (i in 0..accounts_length) {
-            let account = vector::pop_back(&mut accounts);
-            let amount = vector::pop_back(&mut amounts);
-            table::upsert(&mut allowlist.allowlist, account, amount);
+            let account = accounts.pop_back();
+            let amount = amounts.pop_back();
+            allowlist.allowlist.upsert(account, amount);
         };
     }
 
@@ -73,10 +72,10 @@ module deploy_addr::allowlist_table {
         object_management::check_owner(caller_address, object);
 
         let object_address = object::object_address(&object);
-        let allowlist = borrow_global_mut<Allowlist>(object_address);
+        let allowlist = &mut Allowlist[object_address];
 
-        vector::for_each(accounts, |account| {
-            table::remove(&mut allowlist.allowlist, account);
+        accounts.for_each(|account| {
+            allowlist.allowlist.remove(account);
         })
     }
 
@@ -90,9 +89,9 @@ module deploy_addr::allowlist_table {
         accounts: vector<address>
     ) acquires Allowlist {
         let object_address = object::object_address(&object);
-        let allowlist = borrow_global<Allowlist>(object_address);
-        vector::for_each(accounts, |account| {
-            table::borrow_with_default(&allowlist.allowlist, account, &0);
+        let allowlist = &Allowlist[object_address];
+        accounts.for_each(|account| {
+            allowlist.allowlist.borrow_with_default(account, &0);
         })
     }
 }
