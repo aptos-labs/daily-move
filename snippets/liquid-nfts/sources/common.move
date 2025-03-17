@@ -7,7 +7,6 @@ module fraction_addr::common {
     use std::hash;
     use std::option;
     use std::string::String;
-    use std::vector;
     use aptos_std::from_bcs;
     use aptos_std::math64;
     use aptos_framework::aptos_account;
@@ -127,7 +126,7 @@ module fraction_addr::common {
         let auid = transaction_context::generate_auid_address();
         let bytes = bcs::to_bytes(&auid);
         let time_bytes = bcs::to_bytes(&timestamp::now_microseconds());
-        vector::append(&mut bytes, time_bytes);
+        bytes.append(time_bytes);
 
         // Hash that together, and mod by the expected size
         let hash = hash::sha3_256(bytes);
@@ -255,7 +254,7 @@ module fraction_addr::common {
             );
 
             let token = object::object_from_constructor_ref(&constructor);
-            vector::push_back(&mut tokens, token);
+            tokens.push_back(token);
 
             // Transfer tokens to the collector
             object::transfer(creator, token, collector_address);

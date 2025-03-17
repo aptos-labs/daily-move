@@ -12,10 +12,8 @@
 /// - User can call `claim()` which will withdraw a random NFT from the pool in exchange for tokens
 module fraction_addr::liquid_coin {
 
-    use std::option;
     use std::signer;
     use std::string::String;
-    use std::vector;
     use aptos_std::smart_vector::{Self, SmartVector};
     use aptos_framework::aptos_account;
     use aptos_framework::coin;
@@ -77,8 +75,8 @@ module fraction_addr::liquid_coin {
 
         // Ensure collection is fixed, and determine the number of tokens to mint
         let maybe_collection_supply = collection::count(collection);
-        assert!(option::is_some(&maybe_collection_supply), E_NOT_FIXED_SUPPLY);
-        let collection_supply = option::destroy_some(maybe_collection_supply);
+        assert!(maybe_collection_supply.is_some(), E_NOT_FIXED_SUPPLY);
+        let collection_supply = maybe_collection_supply.destroy_some();
         let asset_supply = collection_supply * one_token_from_decimals(decimals);
 
         // Build the object to hold the liquid token
@@ -114,15 +112,15 @@ module fraction_addr::liquid_coin {
         coin::transfer<LiquidCoin>(caller, object_address, redeem_amount);
 
         // Transfer tokens
-        let liquid_token = borrow_global_mut<LiquidCoinMetadata<LiquidCoin>>(object_address);
-        let num_tokens = smart_vector::length(&liquid_token.token_pool);
+        let liquid_token = &mut LiquidCoinMetadata<LiquidCoin>[object_address];
+        let num_tokens = liquid_token.token_pool.length();
         for (i in 0..count) {
             // Transfer random token to caller
             let random_nft_index = pseudorandom_u64(num_tokens);
-            let token = smart_vector::swap_remove(&mut liquid_token.token_pool, random_nft_index);
+            let token = liquid_token.token_pool.swap_remove(random_nft_index);
             let object_signer = object::generate_signer_for_extending(&liquid_token.extend_ref);
             object::transfer(&object_signer, token, caller_address);
-            num_tokens = num_tokens - 1;
+            num_tokens -= 1;
         }
     }
 
@@ -136,12 +134,12 @@ module fraction_addr::liquid_coin {
         tokens: vector<Object<TokenObject>>
     ) acquires LiquidCoinMetadata {
         let caller_address = signer::address_of(caller);
-        let liquidify_amount = one_nft_in_coins<LiquidCoin>() * vector::length(&tokens);
+        let liquidify_amount = one_nft_in_coins<LiquidCoin>() * tokens.length();
         let object_address = object_address(&metadata);
-        let liquid_token = borrow_global_mut<LiquidCoinMetadata<LiquidCoin>>(object_address);
+        let liquid_token = &mut LiquidCoinMetadata<LiquidCoin>[object_address];
 
         // Check ownership on all tokens and that they're in the collection
-        vector::for_each_ref(&tokens, |token| {
+        tokens.for_each_ref(|token| {
             assert!(is_owner(*token, caller_address), E_NOT_OWNER_OF_TOKEN);
             assert!(token::collection_object(*token) == liquid_token.collection, E_NOT_IN_COLLECTION);
         });
@@ -152,9 +150,9 @@ module fraction_addr::liquid_coin {
         );
 
         // Take tokens add them to the pool
-        vector::for_each(tokens, |token| {
+        tokens.for_each(|token| {
             object::transfer(caller, token, object_address);
-            smart_vector::push_back(&mut liquid_token.token_pool, token);
+            liquid_token.token_pool.push_back(token);
         });
 
         // Return to caller liquidity coins
@@ -195,20 +193,20 @@ module fraction_addr::liquid_coin {
 
         // Liquify some tokens
         assert!(!coin::is_account_registered<TestToken>(collector_address), 0);
-        liquify(collector, metadata_object, vector[*vector::borrow(&tokens, 0), *vector::borrow(&tokens, 2)]);
+        liquify(collector, metadata_object, vector[tokens[0], tokens[2]]);
 
         // The tokens should now be in the contract
         assert!(coin::balance<TestToken>(collector_address) == 2 * one_nft_in_coins<TestToken>(), 2);
-        let metadata = borrow_global<LiquidCoinMetadata<TestToken>>(object_address);
-        assert!(2 == smart_vector::length(&metadata.token_pool), 3);
+        let metadata = &LiquidCoinMetadata<TestToken>[object_address];
+        assert!(2 == metadata.token_pool.length(), 3);
 
         // Claim the NFTs back
         claim(collector, metadata_object, 2);
 
         // Tokens should be back with the collector
         assert!(coin::balance<TestToken>(collector_address) == 0, 4);
-        let metadata = borrow_global<LiquidCoinMetadata<TestToken>>(object_address);
-        assert!(0 == smart_vector::length(&metadata.token_pool), 5);
+        let metadata = &LiquidCoinMetadata<TestToken>[object_address];
+        assert!(0 == metadata.token_pool.length(), 5);
     }
 
     #[test(creator = @fraction_addr, collector = @0xbeef)]
