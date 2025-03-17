@@ -48,7 +48,7 @@ module deploy_addr::object_management {
     public(friend) fun get_signer<T: key>(caller: &signer, object: Object<T>): signer acquires ObjectController {
         let caller_address = signer::address_of(caller);
         check_owner(caller_address, object);
-        object::generate_signer_for_extending(&borrow_global<ObjectController>(caller_address).extend_ref)
+        object::generate_signer_for_extending(&ObjectController[caller_address].extend_ref)
     }
 
     /// Retrieve the signer for and delete the object, this allows fully deleting the object

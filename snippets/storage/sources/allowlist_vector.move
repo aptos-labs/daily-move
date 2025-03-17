@@ -11,7 +11,6 @@
 module deploy_addr::allowlist_vector {
 
     use std::signer;
-    use std::vector;
     use aptos_framework::object::{Self, Object};
     use deploy_addr::object_management;
 
@@ -40,9 +39,9 @@ module deploy_addr::allowlist_vector {
         object_management::check_owner(caller_address, object);
 
         let object_address = object::object_address(&object);
-        let allowlist = borrow_global_mut<Allowlist>(object_address);
+        let allowlist = &mut Allowlist[object_address];
 
-        vector::append(&mut allowlist.allowlist, accounts);
+        allowlist.allowlist.append(accounts);
     }
 
     /// 293 items -> 2266 gas
@@ -55,10 +54,10 @@ module deploy_addr::allowlist_vector {
         object_management::check_owner(caller_address, object);
 
         let object_address = object::object_address(&object);
-        let allowlist = borrow_global_mut<Allowlist>(object_address);
+        let allowlist = &mut Allowlist[object_address];
 
-        vector::for_each_ref(&accounts, |account| {
-            vector::remove_value(&mut allowlist.allowlist, account);
+        accounts.for_each_ref(|account| {
+            allowlist.allowlist.remove_value(account);
         })
     }
 
@@ -71,9 +70,9 @@ module deploy_addr::allowlist_vector {
         accounts: vector<address>
     ) acquires Allowlist {
         let object_address = object::object_address(&object);
-        let allowlist = borrow_global<Allowlist>(object_address);
-        vector::for_each_ref(&accounts, |account| {
-            vector::contains(&allowlist.allowlist, account);
+        let allowlist = &Allowlist[object_address];
+        accounts.for_each_ref(|account| {
+            allowlist.allowlist.contains(account);
         })
     }
 }

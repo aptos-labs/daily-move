@@ -13,7 +13,6 @@
 module deploy_addr::allowlist_smart_vector {
 
     use std::signer;
-    use std::vector;
     use aptos_std::smart_vector;
     use aptos_std::smart_vector::SmartVector;
     use aptos_framework::object::{Self, Object};
@@ -43,9 +42,9 @@ module deploy_addr::allowlist_smart_vector {
         object_management::check_owner(caller_address, object);
 
         let object_address = object::object_address(&object);
-        let allowlist = borrow_global_mut<Allowlist>(object_address);
+        let allowlist = &mut Allowlist[object_address];
 
-        smart_vector::add_all(&mut allowlist.allowlist, accounts);
+        allowlist.allowlist.add_all(accounts);
     }
 
     /// 293 items -> 5354 gas
@@ -58,19 +57,19 @@ module deploy_addr::allowlist_smart_vector {
         object_management::check_owner(caller_address, object);
 
         let object_address = object::object_address(&object);
-        let allowlist = borrow_global_mut<Allowlist>(object_address);
+        let allowlist = &mut Allowlist[object_address];
 
-        vector::for_each_ref(&accounts, |account| {
+        accounts.for_each_ref(|account| {
             // Note, smart vector can be very big, so removing by value is not a good idea, but to compare we'll keep it
             let i = 0;
-            let length = smart_vector::length(&allowlist.allowlist);
+            let length = allowlist.allowlist.length();
             while (i < length) {
-                if (account == smart_vector::borrow(&allowlist.allowlist, i)) {
-                    smart_vector::swap_remove(&mut allowlist.allowlist, i);
+                if (account == allowlist.allowlist.borrow(i)) {
+                    allowlist.allowlist.swap_remove(i);
                     break
                 };
 
-                i = i + 1;
+                i += 1;
             };
         })
     }
@@ -84,9 +83,9 @@ module deploy_addr::allowlist_smart_vector {
         accounts: vector<address>
     ) acquires Allowlist {
         let object_address = object::object_address(&object);
-        let allowlist = borrow_global<Allowlist>(object_address);
-        vector::for_each_ref(&accounts, |account| {
-            smart_vector::contains(&allowlist.allowlist, account);
+        let allowlist = &Allowlist[object_address];
+        accounts.for_each_ref(|account| {
+            allowlist.allowlist.contains(account);
         })
     }
 }
