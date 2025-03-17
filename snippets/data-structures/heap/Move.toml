@@ -13,5 +13,3 @@ deploy_addr = "0x12345"
 git = "https://github.com/aptos-labs/aptos-framework.git"
 rev = "mainnet"
 subdir = "aptos-framework"
-
-[dev-dependencies]
