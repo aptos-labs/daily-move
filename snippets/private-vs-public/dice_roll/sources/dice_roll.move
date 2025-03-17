@@ -79,7 +79,7 @@ module deploy_addr::dice_roll {
     /// Allows other programs to know how many wins the user has
     public fun num_wins(player: address): u64 acquires Wins {
         if (exists<Wins>(player)) {
-            borrow_global<Wins>(player).num_wins
+            Wins[player].num_wins
         } else {
             0
         }
@@ -96,8 +96,7 @@ module deploy_addr::dice_roll {
         };
 
         // And increment the wins
-        let wins = borrow_global_mut<Wins>(caller_address);
-        wins.num_wins = wins.num_wins + 1;
+        Wins[caller_address].num_wins += 1;
     }
 
     /// For purposes of this example, this is a pseudorandom number generator.
@@ -107,14 +106,14 @@ module deploy_addr::dice_roll {
         // Use time, and caller as a seed for the hash
         let time = aptos_framework::timestamp::now_microseconds();
         let bytes_to_hash = bcs::to_bytes(&time);
-        std::vector::append(&mut bytes_to_hash, bcs::to_bytes(&caller_address));
-        std::vector::append(&mut bytes_to_hash, b"dice-roll");
+        bytes_to_hash.append(bcs::to_bytes(&caller_address));
+        bytes_to_hash.append(b"dice-roll");
 
         // Hash the input bytes to get a pseudorandom amount of data
         let hash = std::hash::sha3_256(bytes_to_hash);
 
         // Use the first byte, as the data for the random number
-        let val = *std::vector::borrow(&hash, 0);
+        let val = hash[0];
 
         (val % 6) + 1
     }
