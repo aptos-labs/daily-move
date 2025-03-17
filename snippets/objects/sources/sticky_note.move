@@ -2,13 +2,11 @@
 ///
 /// The initial implementation is built to be extendable, and made to show first the differences between
 /// resources and objects.  The next tutorial will extend upon this, showing how objects can be extended.
-module 0x1::sticky_note {
+module 0x42::sticky_note {
 
-    use std::option;
-    use std::option::Option;
+    use std::option::{Self, Option};
     use std::signer;
     use std::string::String;
-    use std::vector;
 
     use aptos_framework::object::{Self, Object, ExtendRef, DeleteRef, TransferRef, ConstructorRef};
 
@@ -61,7 +59,7 @@ module 0x1::sticky_note {
         let board = fetch_board(caller);
 
         // Attach a note
-        vector::push_back(&mut board.board, StickyNote {
+        board.board.push_back(StickyNote {
             message,
         })
     }
@@ -76,7 +74,7 @@ module 0x1::sticky_note {
         move_to(&object_signer, StickyNote { message });
 
         let object = object::object_from_constructor_ref<StickyNote>(&constructor_ref);
-        vector::push_back(&mut board.board, object);
+        board.board.push_back(object);
     }
 
     /// Move sticky note
@@ -85,15 +83,14 @@ module 0x1::sticky_note {
         let board = fetch_board(caller);
 
         // Remove the note from the board
-        assert!(num < vector::length(&board.board), E_OUT_OF_BOUNDS);
-        let note = vector::remove(&mut board.board, num);
+        assert!(num < board.board.length(), E_OUT_OF_BOUNDS);
+        let note = board.board.remove(num);
 
         // The user must have created a board already
         assert!(exists<StickyNoteBoard>(destination), E_NO_BOARD_CREATED_ON_DESTINATION);
 
         // Transfer note
-        let destination_board = borrow_global_mut<StickyNoteBoard>(destination);
-        vector::push_back(&mut destination_board.board, note);
+        StickyNoteBoard[destination].board.push_back(note);
     }
 
     /// Move object sticky note
@@ -102,16 +99,15 @@ module 0x1::sticky_note {
         let board = fetch_object_board(caller);
 
         // Remove the note from the board
-        assert!(num < vector::length(&board.board), E_OUT_OF_BOUNDS);
-        let note = vector::remove(&mut board.board, num);
+        assert!(num < board.board.length(), E_OUT_OF_BOUNDS);
+        let note = board.board.remove(num);
 
         // Sanity check, the object must be owned by the holder
         assert!(object::is_owner(note, signer::address_of(caller)), E_NOT_OWNER);
 
         // The user must have created a board already
         assert!(exists<StickyNoteBoard>(destination), E_NO_BOARD_CREATED_ON_DESTINATION);
-        let destination_board = borrow_global_mut<StickyNoteObjectBoard>(destination);
-        vector::push_back(&mut destination_board.board, note);
+        StickyNoteObjectBoard[destination].board.push_back(note);
 
         // Now actually transfer the object, this overall should be cheaper than the note if the note was long enough
         object::transfer(caller, note, destination)
@@ -170,13 +166,13 @@ module 0x1::sticky_note {
     inline fun fetch_board(caller: &signer): &mut StickyNoteBoard {
         let caller_address = signer::address_of(caller);
         assert!(exists<StickyNoteBoard>(caller_address), E_NO_BOARD_CREATED);
-        borrow_global_mut<StickyNoteBoard>(caller_address)
+        &mut StickyNoteBoard[caller_address]
     }
 
     inline fun fetch_object_board(caller: &signer): &mut StickyNoteObjectBoard {
         let caller_address = signer::address_of(caller);
         assert!(exists<StickyNoteBoard>(caller_address), E_NO_BOARD_CREATED);
-        borrow_global_mut<StickyNoteObjectBoard>(caller_address)
+        &mut StickyNoteObjectBoard[caller_address]
     }
 }
 
