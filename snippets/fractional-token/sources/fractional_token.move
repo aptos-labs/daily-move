@@ -10,7 +10,6 @@ module fraction_addr::fractional_token {
     use std::option;
     use std::signer;
     use std::string;
-    use std::vector;
     use aptos_std::string_utils;
     use aptos_framework::fungible_asset;
     use aptos_framework::fungible_asset::{Metadata, BurnRef};
@@ -59,8 +58,8 @@ module fraction_addr::fractional_token {
 
         // Create names based on the asset's name
         let name = string_utils::format1(&b"Fractionalized {}", asset_name);
-        let asset_name_bytes = string::bytes(&asset_name);
-        let symbol = string_utils::format1(&b"FRAC-{}", string::utf8(vector[*vector::borrow(asset_name_bytes, 0)]));
+        let asset_name_bytes = asset_name.bytes();
+        let symbol = string_utils::format1(&b"FRAC-{}", string::utf8(vector[*asset_name_bytes.borrow(0)]));
 
         primary_fungible_store::create_primary_store_enabled_fungible_asset(
             &constructor,
@@ -104,7 +103,7 @@ module fraction_addr::fractional_token {
         // Check the balance to ensure you have the whole asset
         // We enforce that balance must be u64 and exist
         let caller_balance = primary_fungible_store::balance(caller_address, metadata_object);
-        let total_supply = (option::destroy_some(fungible_asset::supply(metadata_object)) as u64);
+        let total_supply = (fungible_asset::supply(metadata_object).destroy_some() as u64);
         assert!(caller_balance == total_supply, E_NOT_COMPLETE_OWNER);
 
         let FractionalDigitalAsset {
@@ -127,8 +126,8 @@ module fraction_addr::fractional_token {
     }
 
     #[view]
-    public fun metadata_object_address(caller: &signer): address {
-        object::create_object_address(&signer::address_of(caller), OBJECT_SEED)
+    public fun metadata_object_address(caller_address: address): address {
+        object::create_object_address(&caller_address, OBJECT_SEED)
     }
 
     #[test_only]

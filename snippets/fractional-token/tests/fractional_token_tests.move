@@ -1,7 +1,6 @@
 #[test_only]
 module fraction_addr::fractional_token_tests {
     use std::signer::address_of;
-    use std::vector;
     use aptos_framework::fungible_asset::Metadata;
     use aptos_framework::object;
 
@@ -18,12 +17,12 @@ module fraction_addr::fractional_token_tests {
         // Setup collection
         create_collection(creator);
         let tokens = create_tokens(creator);
-        let token = *vector::borrow(&tokens, 0);
+        let token = tokens[0];
 
         // Fractionalize token into 10 fungible tokens
         fractionalize_asset_test_only(creator, token, 10);
 
-        let object_metadata_address = metadata_object_address(creator);
+        let object_metadata_address = metadata_object_address(creator_addr);
         assert!(object::owner(token) == object_metadata_address, 0);
 
         let metadata = object::address_to_object<Metadata>(object_metadata_address);
@@ -42,7 +41,7 @@ module fraction_addr::fractional_token_tests {
         // Setup collection
         create_collection(creator);
         let tokens = create_tokens(creator);
-        let token = *vector::borrow(&tokens, 0);
+        let token = tokens[0];
 
         // Fractionalize token into 10 fungible tokens
         fractionalize_asset_test_only(creator, token, 10);
