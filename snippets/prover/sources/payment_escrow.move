@@ -180,7 +180,7 @@ module deployer::payment_escrow {
     ) acquires Escrow {
         if (!object::is_owner(escrow_object, caller_address)) {
             let object_address = object::object_address(&escrow_object);
-            let escrow = borrow_global<Escrow<CoinType>>(object_address);
+            let escrow = &Escrow<CoinType>[object_address];
 
             assert!(escrow.creator == caller_address, E_NOT_OWNER_OR_CREATOR);
         }
