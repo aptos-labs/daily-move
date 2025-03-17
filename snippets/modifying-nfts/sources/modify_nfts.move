@@ -131,7 +131,7 @@ module deploy_addr::modify_nfts {
         assert!(is_owner || is_creator, E_NOT_CREATOR_OR_OWNER);
 
         // Extend the collection object, now there's a points system
-        let controller = borrow_global<CollectionController>(collection_address);
+        let controller = &CollectionController[collection_address];
         let object_signer = object::generate_signer_for_extending(&controller.extend_ref);
         move_to(&object_signer, CollectionPoints {
             total_points
@@ -152,7 +152,7 @@ module deploy_addr::modify_nfts {
 
         // Set the URI on the token
         let token_address = object::object_address(&collection);
-        let mutator_ref = &borrow_global<CollectionController>(token_address).mutator_ref;
+        let mutator_ref = &CollectionController[token_address].mutator_ref;
         collection::set_uri(mutator_ref, new_uri);
     }
 
@@ -194,7 +194,7 @@ module deploy_addr::modify_nfts {
 
         // Set the URI on the token
         let token_address = object::object_address(&token);
-        let mutator_ref = &borrow_global<TokenController>(token_address).mutator_ref;
+        let mutator_ref = &TokenController[token_address].mutator_ref;
         token::set_uri(mutator_ref, new_uri);
     }
 
@@ -241,7 +241,7 @@ module deploy_addr::modify_nfts {
         // Ensure that there are points attached to the token
         let token_address = object::object_address(&token);
         if (!exists<TokenPoints>(token_address)) {
-            let token_controller = borrow_global<TokenController>(token_address);
+            let token_controller = &TokenController[token_address];
             let object_signer = object::generate_signer_for_extending(&token_controller.extend_ref);
             move_to(&object_signer, TokenPoints {
                 points: 0
@@ -251,22 +251,22 @@ module deploy_addr::modify_nfts {
         // Retrieve the shared points
         let collection = token::collection_object(token);
         let collection_address = object::object_address(&collection);
-        let collection_points = borrow_global_mut<CollectionPoints>(collection_address);
+        let collection_points = &mut CollectionPoints[collection_address];
 
         // Ensure we have enough to give to the token
         assert!(collection_points.total_points >= points, E_NOT_ENOUGH_POINTS);
 
         // Move the points to the token
-        collection_points.total_points = collection_points.total_points - points;
-        let token_points = borrow_global_mut<TokenPoints>(token_address);
-        token_points.points = token_points.points + points;
+        collection_points.total_points -= points;
+        let token_points = &mut TokenPoints[token_address];
+        token_points.points += points;
     }
 
     #[view]
     public fun collection_points(collection: Object<CollectionController>): u64 acquires CollectionPoints {
         let collection_address = object::object_address(&collection);
         if (exists<CollectionPoints>(collection_address)) {
-            borrow_global<CollectionPoints>(collection_address).total_points
+            CollectionPoints[collection_address].total_points
         } else {
             0
         }
@@ -276,7 +276,7 @@ module deploy_addr::modify_nfts {
     public fun token_points(token: Object<TokenController>): u64 acquires TokenPoints {
         let token_address = object::object_address(&token);
         if (exists<TokenPoints>(token_address)) {
-            borrow_global<TokenPoints>(token_address).points
+            TokenPoints[token_address].points
         } else {
             0
         }
