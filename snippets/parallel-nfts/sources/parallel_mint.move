@@ -20,13 +20,10 @@ module deploy_addr::parallel_mint {
 
     use std::option;
     use std::signer;
-    use std::string;
-    use std::string::String;
-    use aptos_framework::object;
-    use aptos_framework::object::Object;
+    use std::string::{Self, String};
+    use aptos_framework::object::{Self, Object};
     use aptos_token_objects::collection;
-    use aptos_token_objects::token;
-    use aptos_token_objects::token::MutatorRef;
+    use aptos_token_objects::token::{Self, MutatorRef};
 
     /// Only the creator can change the URI of AptosToken
     const E_NOT_CREATOR: u64 = 1;
@@ -113,7 +110,7 @@ module deploy_addr::parallel_mint {
         assert_creator(caller);
 
         let collection_address = collection_object();
-        borrow_global_mut<CollectionRefs>(collection_address).mint_enabled = true;
+        CollectionRefs[collection_address].mint_enabled = true;
     }
 
     /// Disables allowing others to mint
@@ -121,7 +118,7 @@ module deploy_addr::parallel_mint {
         assert_creator(caller);
 
         let collection_address = collection_object();
-        borrow_global_mut<CollectionRefs>(collection_address).mint_enabled = false;
+        CollectionRefs[collection_address].mint_enabled = false;
     }
 
     /// Allow others to mint the token with the default image
@@ -130,12 +127,12 @@ module deploy_addr::parallel_mint {
     public entry fun mint(caller: &signer) acquires CollectionOwner, CollectionRefs {
         let caller_address = signer::address_of(caller);
         let collection_owner_address = collection_owner();
-        let owner_extend_ref = &borrow_global<CollectionOwner>(collection_owner_address).extend_ref;
+        let owner_extend_ref = &CollectionOwner[collection_owner_address].extend_ref;
         let owner_signer = object::generate_signer_for_extending(owner_extend_ref);
 
         // Check that the mint is enabled
         let collection_address = collection_object();
-        assert!(borrow_global<CollectionRefs>(collection_address).mint_enabled, E_MINT_DISABLED);
+        assert!(CollectionRefs[collection_address].mint_enabled, E_MINT_DISABLED);
 
         // Create the token, specifically making it in a completely parallelizable way while still having it numbered
         // It will create an NFT like #1, #2, ..., #10, etc.
@@ -204,14 +201,14 @@ module deploy_addr::parallel_mint {
         let caller_address = signer::address_of(caller);
         assert!(object::is_owner(token, caller_address), E_NOT_OWNER);
         let token_address = object::object_address(&token);
-        &borrow_global<TokenRefs>(token_address).mutator_ref
+        &TokenRefs[token_address].mutator_ref
     }
 
     /// Asserts that the creator is the caller of the function and returns a mutator ref
     inline fun get_creator_mutator(caller: &signer, token: Object<TokenRefs>): &MutatorRef {
         assert_creator(caller);
         let token_address = object::object_address(&token);
-        &borrow_global<TokenRefs>(token_address).mutator_ref
+        &TokenRefs[token_address].mutator_ref
     }
 
     /// Asserts that the creator is the caller of the function
