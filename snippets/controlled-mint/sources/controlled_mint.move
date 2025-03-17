@@ -12,7 +12,6 @@ module deploy_addr::controlled_mint {
     use std::option::{Self, Option};
     use std::signer;
     use std::string::{Self, String};
-    use std::vector;
     use aptos_framework::object::{Self, Object};
     use aptos_token_objects::collection::{Self, Collection};
     use aptos_token_objects::royalty::{Self, Royalty};
@@ -74,17 +73,13 @@ module deploy_addr::controlled_mint {
         royalty_denominator: Option<u64>,
         royalty_address: Option<address>,
     ): Option<Royalty> {
-        if (option::is_none(&royalty_address) && option::is_none(&royalty_denominator) && option::is_none(
-            &royalty_address
-        )) {
+        if (royalty_address.is_none() && royalty_denominator.is_none() && royalty_address.is_none()) {
             option::none()
-        } else if (option::is_some(&royalty_address) && option::is_some(&royalty_denominator) && option::is_some(
-            &royalty_address
-        )) {
+        } else if (royalty_address.is_some() && royalty_denominator.is_some() && royalty_address.is_some()) {
             option::some(royalty::create(
-                option::destroy_some(royalty_numerator),
-                option::destroy_some(royalty_denominator),
-                option::destroy_some(royalty_address)
+                royalty_numerator.destroy_some(),
+                royalty_denominator.destroy_some(),
+                royalty_address.destroy_some()
             ))
         } else {
             abort E_INVALID_ROYALTY_CONFIG
@@ -96,7 +91,7 @@ module deploy_addr::controlled_mint {
     /// This is purposely not deletable, as we want the collection owner to always exist.
     inline fun create_collection_owner(caller: &signer, collection_name: String): signer {
         // Create a named object so that it can be derived in the mint function
-        let constructor_ref = object::create_named_object(caller, *string::bytes(&collection_name));
+        let constructor_ref = object::create_named_object(caller, *collection_name.bytes());
         let extend_ref = object::generate_extend_ref(&constructor_ref);
         let owner_signer = object::generate_signer(&constructor_ref);
 
@@ -143,9 +138,9 @@ module deploy_addr::controlled_mint {
         destinations: vector<address>,
     ) acquires CollectionOwner {
         // Validate input, the lengths must be the same
-        let num_items = vector::length(&descriptions);
-        assert!(num_items == vector::length(&uris), E_MISMATCH_DESCRIPTION_URI_LENGTH);
-        assert!(num_items == vector::length(&destinations), E_MISMATCH_DESCRIPTION_ADDRESS_LENGTH);
+        let num_items = descriptions.length();
+        assert!(num_items == uris.length(), E_MISMATCH_DESCRIPTION_URI_LENGTH);
+        assert!(num_items == destinations.length(), E_MISMATCH_DESCRIPTION_ADDRESS_LENGTH);
 
         // Ensure only the owner of the collection can mint
         let caller_address = signer::address_of(caller);
@@ -153,7 +148,7 @@ module deploy_addr::controlled_mint {
         let collection_owner_object = object::address_to_object<CollectionOwner>(collection_owner_address);
         assert!(object::owns(collection_owner_object, caller_address), E_NOT_CREATOR);
 
-        let owner_extend_ref = &borrow_global<CollectionOwner>(collection_owner_address).extend_ref;
+        let owner_extend_ref = &CollectionOwner[collection_owner_address].extend_ref;
         let owner_signer = object::generate_signer_for_extending(owner_extend_ref);
 
         let collection_name = collection::name(collection_object);
@@ -162,9 +157,9 @@ module deploy_addr::controlled_mint {
         for (i in 0..num_items) {
             let last = num_items - i - 1;
             // TODO: wonder if swap remove or borrow and copy are more gas efficient
-            let description = vector::swap_remove(&mut descriptions, last);
-            let uri = vector::swap_remove(&mut uris, last);
-            let destination = vector::swap_remove(&mut destinations, last);
+            let description = descriptions.swap_remove(last);
+            let uri = uris.swap_remove(last);
+            let destination = destinations.swap_remove(last);
             mint_token(
                 &owner_signer,
                 collection_name,
