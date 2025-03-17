@@ -135,7 +135,7 @@ module lockup_deployer::fa_lockup {
     ) acquires Lockup, Escrow {
         let caller_address = signer::address_of(caller);
         let lockup_address = object::object_address(&lockup_obj);
-        let lockup = borrow_global_mut<Lockup>(lockup_address);
+        let lockup = &mut Lockup[lockup_address];
 
         let lockup_key = EscrowKey::FAPerUser {
             fa_metadata,
@@ -162,7 +162,7 @@ module lockup_deployer::fa_lockup {
             *escrow_address = object::address_from_constructor_ref(&constructor_ref);
         } else {
             // Otherwise, we'll reset the unlock time to the new time
-            let escrow = borrow_global_mut<Escrow>(*escrow_address);
+            let escrow = &Escrow[*escrow_address];
             match (escrow) {
                 Simple { .. } => {
                     // Do nothing
@@ -187,7 +187,7 @@ module lockup_deployer::fa_lockup {
     ) acquires Lockup, Escrow {
         let caller_address = signer::address_of(caller);
         let lockup_address = object::object_address(&lockup_obj);
-        let lockup = borrow_global_mut<Lockup>(lockup_address);
+        let lockup = &mut Lockup[lockup_address];
 
         let lockup_key = EscrowKey::FAPerUser {
             fa_metadata,
@@ -220,7 +220,7 @@ module lockup_deployer::fa_lockup {
             *escrow_address = object::address_from_constructor_ref(&constructor_ref);
         } else {
             // Otherwise, we'll reset the unlock time to the new time
-            let escrow = borrow_global_mut<Escrow>(*escrow_address);
+            let escrow = &mut Escrow[*escrow_address];
             match (escrow) {
                 Simple { .. } => {
                     abort E_NOT_TIME_LOCKUP;
@@ -280,7 +280,7 @@ module lockup_deployer::fa_lockup {
         );
 
         // Determine original owner, and any conditions on returning
-        let original_owner = match (borrow_global<Escrow>(escrow_address)) {
+        let original_owner = match (&Escrow[escrow_address]) {
             Escrow::Simple { original_owner, .. } => {
                 *original_owner
             }
@@ -312,7 +312,7 @@ module lockup_deployer::fa_lockup {
         );
 
         // Determine original owner, and any conditions on returning
-        let original_owner = match (borrow_global<Escrow>(escrow_address)) {
+        let original_owner = match (&Escrow[escrow_address]) {
             Escrow::Simple { original_owner, .. } => {
                 *original_owner
             }
@@ -335,7 +335,7 @@ module lockup_deployer::fa_lockup {
         lockup_obj: &Object<Lockup>,
     ): &mut Lockup {
         let lockup_address = object::object_address(lockup_obj);
-        borrow_global_mut<Lockup>(lockup_address)
+        &mut Lockup[lockup_address]
     }
 
     /// Retrieves the lockup object for reading
@@ -343,7 +343,7 @@ module lockup_deployer::fa_lockup {
         lockup_obj: &Object<Lockup>,
     ): &Lockup {
         let lockup_address = object::object_address(lockup_obj);
-        borrow_global<Lockup>(lockup_address)
+        &Lockup[lockup_address]
     }
 
     /// Retrieves the lockup object for removal
@@ -430,7 +430,7 @@ module lockup_deployer::fa_lockup {
     #[view]
     /// Tells the lockup address for the user who created the original lockup
     public fun lockup_address(escrow_account: address): address acquires LockupRef {
-        borrow_global<LockupRef>(escrow_account).lockup_address
+        LockupRef[escrow_account].lockup_address
     }
 
     #[view]
@@ -468,7 +468,7 @@ module lockup_deployer::fa_lockup {
         };
         if (lockup.escrows.contains(escrow_key)) {
             let escrow_address = lockup.escrows.borrow(escrow_key);
-            let remaining_secs = match (borrow_global<Escrow>(*escrow_address)) {
+            let remaining_secs = match (&Escrow[*escrow_address]) {
                 Simple { .. } => { 0 }
                 TimeUnlock { unlock_secs, .. } => {
                     let now = timestamp::now_seconds();

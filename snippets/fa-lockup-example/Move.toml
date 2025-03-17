@@ -13,5 +13,3 @@ lockup_deployer = "0xbeef"
 git = "https://github.com/aptos-labs/aptos-framework.git"
 rev = "mainnet"
 subdir = "aptos-framework"
-
-[dev-dependencies]
