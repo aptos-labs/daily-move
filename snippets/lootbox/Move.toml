@@ -10,16 +10,16 @@ mystery_addr = "_"
 mystery_addr = "0x1111"
 
 [dependencies.AptosFramework]
-git = "https://github.com/aptos-labs/aptos-core.git"
-rev = "devnet"
-subdir = "aptos-move/framework/aptos-framework"
+git = "https://github.com/aptos-labs/aptos-framework.git"
+rev = "mainnet"
+subdir = "aptos-framework"
 
 [dependencies.AptosToken]
-git = "https://github.com/aptos-labs/aptos-core.git"
-rev = "devnet"
-subdir = "aptos-move/framework/aptos-token"
+git = "https://github.com/aptos-labs/aptos-framework.git"
+rev = "mainnet"
+subdir = "aptos-token"
 
 [dependencies.AptosTokenObjects]
-git = "https://github.com/aptos-labs/aptos-core.git"
-rev = "devnet"
-subdir = "aptos-move/framework/aptos-token-objects"
+git = "https://github.com/aptos-labs/aptos-framework.git"
+rev = "mainnet"
+subdir = "aptos-token-objects"

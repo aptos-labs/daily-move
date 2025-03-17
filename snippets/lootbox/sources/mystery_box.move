@@ -5,7 +5,6 @@ module mystery_addr::mystery_box {
     use std::option::{Self, Option};
     use std::signer;
     use std::string::{Self, String};
-    use std::vector;
     use aptos_std::smart_vector::{Self, SmartVector};
     use aptos_framework::aptos_account;
     use aptos_framework::coin::{Self, Coin};
@@ -144,14 +143,14 @@ module mystery_addr::mystery_box {
         let registry_signer = object::generate_signer_for_extending(&registry.extend_ref);
 
         // Note, this prevents parallelization, but is meant to ensure it doesn't go over the ticket amount
-        let box_size = smart_vector::length(&registry.boxes);
-        let collection_size = option::destroy_some(collection::count(registry_obj));
-        let num_recievers = vector::length(&receivers);
+        let box_size = registry.boxes.length();
+        let collection_size = collection::count(registry_obj).destroy_some();
+        let num_recievers = receivers.length();
 
         assert!(collection_size + num_recievers <= box_size, E_NOT_ENOUGH_BOXES);
 
         // Mint each ticket to each user
-        vector::for_each(receivers, |receiver| {
+        receivers.for_each(|receiver| {
             let ticket_transfer_ref = mint_ticket_in_collection(
                 &registry_signer,
                 collection_name,
@@ -228,12 +227,12 @@ module mystery_addr::mystery_box {
         object::delete(delete_ref);
 
         // Randomly choose an available box, and open it
-        let registry = borrow_global_mut<MysteryBoxRegistry>(registry_address);
-        let num_boxes = smart_vector::length(&registry.boxes);
+        let registry = &mut MysteryBoxRegistry[registry_address];
+        let num_boxes = registry.boxes.length();
         assert!(num_boxes > 0, E_NO_BOXES_AVAILABLE);
 
         let index = randomness::u64_range(0, num_boxes);
-        let box_object = smart_vector::swap_remove(&mut registry.boxes, index);
+        let box_object = registry.boxes.swap_remove(index);
         let box_address = object::object_address(&box_object);
         let MysteryBox {
             types,
@@ -245,7 +244,7 @@ module mystery_addr::mystery_box {
         let box_signer = object::generate_signer_for_extending(&extend_ref);
 
         // Retrieve all associated types and transfer assets
-        vector::for_each(types, |type| {
+        types.for_each(|type| {
             // Note, the proper coin types must be passed, otherwise, they will be lost forever.
             if (type == COIN_TYPE) {
                 if (coin_type_counter == 0) {
@@ -256,7 +255,7 @@ module mystery_addr::mystery_box {
                     open_coin_box<CoinType2>(caller_address, box_address);
                 };
 
-                coin_type_counter = coin_type_counter + 1;
+                coin_type_counter += 1;
             } else if (type == FA_TYPE) {
                 open_fa_box(&box_signer, caller_address, box_address);
             } else if (type == LEGACY_TOKEN_TYPE) {
@@ -286,7 +285,7 @@ module mystery_addr::mystery_box {
             fas
         } = move_from<FungibleAssetBox>(box_address);
 
-        vector::for_each(fas, |fa_delete_ref| {
+        fas.for_each(|fa_delete_ref| {
             let fa = object::object_from_delete_ref<FungibleStore>(&fa_delete_ref);
             // Withdraw all
             let amount = fungible_asset::balance(fa);
@@ -306,7 +305,7 @@ module mystery_addr::mystery_box {
         } = move_from<DigitalAssetBox>(box_address);
 
         // Transfer digital assets
-        vector::for_each(tokens, |token| {
+        tokens.for_each(|token| {
             object::transfer(box_signer, token, caller_address);
         })
     }
@@ -317,7 +316,7 @@ module mystery_addr::mystery_box {
         } = move_from<LegacyTokenBox>(box_address);
 
         // Deposit tokens
-        vector::for_each(tokens, |token| {
+        tokens.for_each(|token| {
             aptos_token::token::deposit_token(caller, token);
         })
     }
@@ -337,58 +336,57 @@ module mystery_addr::mystery_box {
 
         // Prep types and do input validation
         let types = vector[];
-        let num_coins = vector::length(&coin_amounts);
+        let num_coins = coin_amounts.length();
         assert!(num_coins <= 3, E_TOO_MANY_COIN_TYPES);
         for (_i in 0..num_coins) {
-            vector::push_back(&mut types, COIN_TYPE);
+            types.push_back(COIN_TYPE);
         };
 
-        let num_fa = vector::length(&fa_amounts);
-        assert!(num_fa != vector::length(&fa_metadatas), E_FA_LENGTH_MISMATCH);
+        let num_fa = fa_amounts.length();
+        assert!(num_fa != fa_metadatas.length(), E_FA_LENGTH_MISMATCH);
         for (_i in 0..num_fa) {
-            vector::push_back(&mut types, FA_TYPE);
+            types.push_back(FA_TYPE);
         };
 
-        let num_legacy_token = vector::length(&legacy_token_token_names);
+        let num_legacy_token = legacy_token_token_names.length();
         assert!(
-            num_legacy_token == vector::length(&legacy_token_collection_names) && num_legacy_token == vector::length(
-                &legacy_token_creator_addresses
-            ),
+            num_legacy_token == legacy_token_collection_names.length(
+            ) && num_legacy_token == legacy_token_creator_addresses.length(),
             E_LEGACY_TOKEN_LENGTH_MISMATCH
         );
         for (_i in 0..num_legacy_token) {
-            vector::push_back(&mut types, LEGACY_TOKEN_TYPE);
+            types.push_back(LEGACY_TOKEN_TYPE);
         };
 
-        let num_digital_assets = vector::length(&digital_assets);
+        let num_digital_assets = digital_assets.length();
         for (_i in 0..num_digital_assets) {
-            vector::push_back(&mut types, DA_TYPE);
+            types.push_back(DA_TYPE);
         };
 
         // Build box, and add all associated items
         let box_signer = create_box(registry_address, types);
         if (num_coins > 0) {
-            add_coin<CoinType1>(&box_signer, caller, *vector::borrow(&coin_amounts, 0))
+            add_coin<CoinType1>(&box_signer, caller, *coin_amounts.borrow(0))
         };
         if (num_coins > 1) {
-            add_coin<CoinType2>(&box_signer, caller, *vector::borrow(&coin_amounts, 1))
+            add_coin<CoinType2>(&box_signer, caller, *coin_amounts.borrow(1))
         };
         if (num_coins > 2) {
-            add_coin<CoinType3>(&box_signer, caller, *vector::borrow(&coin_amounts, 2))
+            add_coin<CoinType3>(&box_signer, caller, *coin_amounts.borrow(2))
         };
         for (i in 0..num_fa) {
-            add_fungible_asset(&box_signer, caller, *vector::borrow(&fa_metadatas, i), *vector::borrow(&fa_amounts, i))
+            add_fungible_asset(&box_signer, caller, *fa_metadatas.borrow(i), *fa_amounts.borrow(i))
         };
         for (i in 0..num_legacy_token) {
             add_legacy_token(
                 &box_signer,
                 caller,
-                *vector::borrow(&legacy_token_creator_addresses, i),
-                *vector::borrow(&legacy_token_collection_names, i),
-                *vector::borrow(&legacy_token_token_names, i)
+                *legacy_token_creator_addresses.borrow(i),
+                *legacy_token_collection_names.borrow(i),
+                *legacy_token_token_names.borrow(i)
             )
         };
-        vector::for_each(digital_assets, |digital_asset| {
+        digital_assets.for_each(|digital_asset| {
             add_digital_asset(
                 &box_signer,
                 caller,
@@ -485,7 +483,7 @@ module mystery_addr::mystery_box {
             });
         };
 
-        vector::push_back(&mut borrow_global_mut<FungibleAssetBox>(box_address).fas, delete_ref);
+        FungibleAssetBox[box_address].fas.push_back(delete_ref);
     }
 
     inline fun add_legacy_token(
@@ -516,7 +514,7 @@ module mystery_addr::mystery_box {
             });
         };
 
-        vector::push_back(&mut borrow_global_mut<LegacyTokenBox>(box_address).tokens, token);
+        LegacyTokenBox[box_address].tokens.push_back(token);
     }
 
     inline fun add_digital_asset(box_signer: &signer, caller: &signer, token: Object<Token>) {
@@ -532,7 +530,7 @@ module mystery_addr::mystery_box {
             });
         };
 
-        vector::push_back(&mut borrow_global_mut<DigitalAssetBox>(box_address).tokens, token);
+        DigitalAssetBox[box_address].tokens.push_back(token);
     }
 
     inline fun create_box(registry_address: address, types: vector<u8>): signer {
@@ -559,13 +557,13 @@ module mystery_addr::mystery_box {
         let registry = get_registry_mut(registry_obj);
 
         // Ensure user can push to the registry
-        if (option::is_some(&registry.add_allowlist)) {
+        if (registry.add_allowlist.is_some()) {
             let caller_address = signer::address_of(caller);
-            assert!(vector::contains(option::borrow(&registry.add_allowlist), &caller_address), E_NOT_ALLOWED)
+            assert!(registry.add_allowlist.borrow().contains(&caller_address), E_NOT_ALLOWED)
         };
 
         // Store the box
-        smart_vector::push_back(&mut registry.boxes, object);
+        registry.boxes.push_back(object);
     }
 
     inline fun get_registry(
@@ -573,7 +571,7 @@ module mystery_addr::mystery_box {
     ): &MysteryBoxRegistry {
         let registry_address = object::object_address(&registry_obj);
         assert!(exists<MysteryBoxRegistry>(registry_address), E_REGISTRY_DOESNT_EXIST);
-        borrow_global<MysteryBoxRegistry>(registry_address)
+        &MysteryBoxRegistry[registry_address]
     }
 
     inline fun get_registry_mut(
@@ -581,6 +579,6 @@ module mystery_addr::mystery_box {
     ): &mut MysteryBoxRegistry {
         let registry_address = object::object_address(&registry_obj);
         assert!(exists<MysteryBoxRegistry>(registry_address), E_REGISTRY_DOESNT_EXIST);
-        borrow_global_mut<MysteryBoxRegistry>(registry_address)
+        &mut MysteryBoxRegistry[registry_address]
     }
 }
