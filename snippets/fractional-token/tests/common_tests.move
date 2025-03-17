@@ -5,7 +5,6 @@ module fraction_addr::common_tests {
     use std::signer;
     use std::string;
     use std::string::String;
-    use std::vector;
     use aptos_std::string_utils;
     use aptos_framework::account::create_account_for_test;
     use aptos_framework::genesis;
@@ -74,7 +73,7 @@ module fraction_addr::common_tests {
                 string::utf8(b"http://tokenUri.com"),
             );
             let refs = token_components::create_refs(constructor_ref);
-            vector::push_back(&mut tokens, object::convert(refs));
+            tokens.push_back(object::convert(refs));
         };
 
         tokens
