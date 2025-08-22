@@ -1,0 +1,17 @@
+[package]
+name = "snipe-protection"
+version = "1.0.0"
+authors = []
+
+[addresses]
+antisnipe = "_"
+
+[dev-addresses]
+antisnipe = "0x1234"
+
+[dependencies.AptosFramework]
+git = "https://github.com/aptos-labs/aptos-framework.git"
+rev = "mainnet"
+subdir = "aptos-framework"
+
+[dev-dependencies]
