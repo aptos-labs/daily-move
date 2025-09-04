@@ -123,7 +123,7 @@ module antisnipe::antisnipe_token {
 
                 // Check antisnipe conditions
                 assert!(
-                    new_balance < *antisnipe_amount || allowlisted_owners.contains(
+                    new_balance <= *antisnipe_amount || allowlisted_owners.contains(
                         &store_owner
                     ),
                     E_ANTISNIPE_ENABLED
@@ -180,7 +180,7 @@ module antisnipe::antisnipe_token {
         let data = &FAData[metadata_address].antisnipe_data;
 
         match (data) {
-            AntisnipeData::Disabled => option::none(),
+            AntisnipeData::Disabled => option::some(AntisnipeData::Disabled),
             _ => option::some(*data),
         }
     }
