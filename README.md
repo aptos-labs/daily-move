@@ -108,6 +108,7 @@ After deploying, interact with your contract via the [Aptos Explorer](https://ex
 | [Liquid NFTs](snippets/liquid-nfts/) | `snippets/liquid-nfts/` | NFT liquidity pools using Coin, Legacy Token, and Fungible Asset standards |
 | [Lootbox / Mystery Box](snippets/lootbox/) | `snippets/lootbox/` | On-chain mystery boxes using Aptos randomness, supporting coins, FAs, and NFTs |
 | [Prover (Payment Escrow)](snippets/prover/) | `snippets/prover/` | Formal verification with the Move Prover on a payment escrow contract |
+| [Snipe Prevention](snippets/snipe-prevention/) | `snippets/snipe-prevention/` | Anti-snipe protection for token launches using dispatchable fungible assets |
 
 ---
 
@@ -131,6 +132,7 @@ After deploying, interact with your contract via the [Aptos Explorer](https://ex
 | 14 | [liquid-nfts](snippets/liquid-nfts/) | Liquidity pools, Coin vs FA, legacy tokens, pseudorandom | Receiver style, index notation, `for` loops | Yes |
 | 15 | [lootbox](snippets/lootbox/) | Randomness API, multi-asset boxes, soulbound tickets | Receiver style, index notation, `for` loops | No |
 | 16 | [prover](snippets/prover/) | Move Prover, formal specs, invariants, schemas | Receiver style, index notation | No |
+| 17 | [snipe-prevention](snippets/snipe-prevention/) | Dispatchable FA hooks, anti-snipe, allowlists, enum types | Receiver style, index notation, enums, `match` | Yes |
 
 ---
 
@@ -249,6 +251,10 @@ snippets/
 │   ├── Move.toml
 │   └── sources/
 │       └── payment_escrow.move
+├── snipe-prevention/         # Anti-snipe protection for token launches
+│   ├── Move.toml
+│   └── sources/
+│       └── antisnipe_token.move
 ├── storage/                  # Data structure comparison with gas benchmarks
 │   ├── Move.toml
 │   └── sources/
@@ -278,6 +284,7 @@ Different examples use different named addresses in their `Move.toml`. When depl
 | `mystery_addr` | lootbox |
 | `lockup_deployer` | fa-lockup-example |
 | `deployer` | prover |
+| `antisnipe` | snipe-prevention |
 | `0x42` | objects (sticky-note) |
 
 ---
