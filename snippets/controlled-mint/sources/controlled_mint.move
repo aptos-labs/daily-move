@@ -171,7 +171,7 @@ module deploy_addr::controlled_mint {
         }
     }
 
-    /// Mint a single otken
+    /// Mint a single token
     inline fun mint_token(
         owner_signer: &signer,
         collection_name: String,
@@ -204,5 +204,115 @@ module deploy_addr::controlled_mint {
         // Transfer NFT to the caller
         let object = object::object_from_constructor_ref<TokenRefs>(&constructor_ref);
         object::transfer(owner_signer, object, destination);
+    }
+
+    // ---- Tests ----
+
+    #[test(caller = @deploy_addr)]
+    /// Tests that a collection can be created successfully without royalties
+    fun test_create_collection_no_royalty(caller: &signer) {
+        use std::option;
+
+        create_collection(
+            caller,
+            string::utf8(b"Test Collection"),
+            string::utf8(b"A test collection"),
+            string::utf8(b"https://example.com/collection"),
+            option::none(),
+            option::none(),
+            option::none(),
+        );
+    }
+
+    #[test(caller = @deploy_addr)]
+    /// Tests creating a collection with royalty configuration
+    fun test_create_collection_with_royalty(caller: &signer) {
+        use std::option;
+
+        create_collection(
+            caller,
+            string::utf8(b"Royalty Collection"),
+            string::utf8(b"A collection with royalties"),
+            string::utf8(b"https://example.com/royalty"),
+            option::some(5),
+            option::some(100),
+            option::some(@deploy_addr),
+        );
+    }
+
+    #[test(caller = @deploy_addr)]
+    #[expected_failure(abort_code = E_INVALID_ROYALTY_CONFIG)]
+    /// Tests that partial royalty config causes an error (address provided but numerator/denominator missing)
+    fun test_create_collection_invalid_royalty(caller: &signer) {
+        use std::option;
+
+        create_collection(
+            caller,
+            string::utf8(b"Bad Collection"),
+            string::utf8(b"Should fail"),
+            string::utf8(b"https://example.com/bad"),
+            option::none(),          // Missing numerator
+            option::none(),          // Missing denominator
+            option::some(@0xCAFE),   // Address provided
+        );
+    }
+
+    #[test(caller = @deploy_addr)]
+    /// Tests minting NFTs to destinations
+    fun test_mint_to_destinations(caller: &signer) acquires CollectionOwner {
+        use std::option;
+
+        create_collection(
+            caller,
+            string::utf8(b"Mint Collection"),
+            string::utf8(b"A mintable collection"),
+            string::utf8(b"https://example.com/mint"),
+            option::none(),
+            option::none(),
+            option::none(),
+        );
+
+        let collection_owner_address = object::create_object_address(&@deploy_addr, b"Mint Collection");
+        let collection_address = collection::create_collection_address(&collection_owner_address, &string::utf8(b"Mint Collection"));
+        let collection_object = object::address_to_object<Collection>(collection_address);
+
+        mint(
+            caller,
+            collection_object,
+            string::utf8(b"NFT #"),
+            vector[string::utf8(b"First NFT"), string::utf8(b"Second NFT")],
+            vector[string::utf8(b"https://example.com/1"), string::utf8(b"https://example.com/2")],
+            vector[@0xCAFE, @0xBEEF],
+        );
+    }
+
+    #[test(caller = @deploy_addr)]
+    #[expected_failure(abort_code = E_MISMATCH_DESCRIPTION_URI_LENGTH)]
+    /// Tests that mismatched description/uri lengths cause an error
+    fun test_mint_mismatched_lengths(caller: &signer) acquires CollectionOwner {
+        use std::option;
+
+        create_collection(
+            caller,
+            string::utf8(b"Mismatch Collection"),
+            string::utf8(b"Test"),
+            string::utf8(b"https://example.com"),
+            option::none(),
+            option::none(),
+            option::none(),
+        );
+
+        let collection_owner_address = object::create_object_address(&@deploy_addr, b"Mismatch Collection");
+        let collection_address = collection::create_collection_address(&collection_owner_address, &string::utf8(b"Mismatch Collection"));
+        let collection_object = object::address_to_object<Collection>(collection_address);
+
+        mint(
+            caller,
+            collection_object,
+            string::utf8(b"NFT #"),
+            vector[string::utf8(b"One"), string::utf8(b"Two")],
+            vector[string::utf8(b"https://example.com/1")], // Only 1 URI for 2 descriptions
+            vector[@0xCAFE, @0xBEEF],
+        );
     }
 }
