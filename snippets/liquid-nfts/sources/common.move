@@ -1,6 +1,9 @@
-/// This is a common friend module
+/// Shared utility functions for all liquid NFT implementations.
 ///
-/// The friend module here is so that logic can be used between all versions of the liquid nft module
+/// This module uses `public(friend)` visibility so that the three liquid NFT modules
+/// (`liquid_coin`, `liquid_coin_legacy`, `liquid_fungible_asset`) can share common logic
+/// for object creation, coin/FA minting, decimal calculations, and pseudorandom number generation,
+/// without exposing these internals to external callers.
 module fraction_addr::common {
 
     use std::bcs;

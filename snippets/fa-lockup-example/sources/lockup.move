@@ -1,12 +1,24 @@
-/// A time-locked escrow for many parties to a single party
+/// Time-locked fungible asset escrow supporting multiple depositors to a single recipient.
 ///
-/// It works as follows:
-/// 1. There is a `LockupRef`, which is stored in the account being paid to.  It keeps track of the Lockup object.
-/// 2. There is a `Lockup` object, which keeps track of all escrow objects currently running
+/// ## Architecture:
+/// 1. **`LockupRef`** -- stored in the lockup creator's account, pointing to the Lockup object
+/// 2. **`Lockup`** (enum, ST variant) -- an object holding a SmartTable mapping (FA + user) to escrow addresses
+/// 3. **`Escrow`** (enum) -- per-user, per-FA escrow objects that hold the actual funds
+///    - `Simple` variant: no time lock, funds can be returned immediately
+///    - `TimeUnlock` variant: funds locked until `unlock_secs` timestamp passes
 ///
-/// To test `aptos move test --move-2 --dev`
+/// ## Demonstrates Move 2 features:
+/// - Enum types (`Lockup`, `EscrowKey`, `Escrow`)
+/// - Pattern matching with `match` expressions
+/// - Dispatchable fungible asset transfers
+/// - Full object lifecycle (create, use, delete with storage recovery)
 ///
-/// TODO: Add cleanup for `Lookup`
+/// ## Testing:
+/// ```bash
+/// aptos move test --move-2 --dev
+/// ```
+///
+/// TODO: Add cleanup for `Lockup` itself
 /// TODO: Add Tree instead of SmartTable as an option in the future
 module lockup_deployer::fa_lockup {
 

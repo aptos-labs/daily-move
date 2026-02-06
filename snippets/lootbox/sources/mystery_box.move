@@ -1,5 +1,17 @@
-/// A mystery loot box which allows for people to enter loot boxes, and they're
-/// added to the pool
+/// On-chain mystery box system using the Aptos randomness API.
+///
+/// ## How it works:
+/// 1. An admin creates a `MysteryBoxRegistry` along with a ticket collection
+/// 2. Anyone (or allowlisted users) can add mystery boxes containing coins, FAs, legacy tokens, and/or digital assets
+/// 3. The admin mints soulbound `Ticket` NFTs to receivers
+/// 4. A ticket holder calls `open_box` which uses on-chain randomness to select a random box
+/// 5. The box contents are transferred to the opener, and the box + ticket are destroyed
+///
+/// ## Asset types supported per box:
+/// - Up to 3 coin types (`CoinType0`, `CoinType1`, `CoinType2`)
+/// - Any number of fungible assets
+/// - Any number of legacy tokens (Token V1)
+/// - Any number of digital assets (Token Objects V2)
 module mystery_addr::mystery_box {
 
     use std::option::{Self, Option};

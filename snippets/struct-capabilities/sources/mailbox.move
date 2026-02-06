@@ -1,10 +1,17 @@
-/// Mailbox example.  This shows how to make a Mailbox to send multiple different types of items to other users
-/// using a middle man contract.
+/// Mailbox system demonstrating struct capability patterns in Move.
 ///
-/// The envelopes wrap the objects, tokens, and coins for sending between two parties, and can be taken back from
-/// the sender if not claimed by the receiver
+/// Users can send envelopes containing coins, legacy tokens, and objects to other users. This
+/// demonstrates how Move's type system enforces safety through struct abilities:
 ///
+/// - `Envelope` cannot be dropped (because `Coin` and `Token` lack `drop`), forcing proper handling
+/// - `Envelope` cannot be copied (because `Coin` and `Token` lack `copy`), preventing duplication
+/// - `MailboxId` has `copy` and `drop`, showing when these abilities are useful for keys
 ///
+/// ## Workflow:
+/// 1. A sender calls `send_mail` with coins, objects, and/or tokens
+/// 2. The receiver can `open_envelope` to claim contents
+/// 3. Or the sender can `return_envelope` to get contents back
+/// 4. Empty mailboxes can be destroyed to reclaim storage gas
 module deploy_addr::mailbox {
 
     use std::option::{Self, Option};

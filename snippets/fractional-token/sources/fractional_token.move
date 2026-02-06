@@ -1,10 +1,21 @@
-/// An example on how to fractionalize an already existing Digital asset
+/// Fractionalize a digital asset (NFT) into fungible tokens and recombine later.
 ///
-/// This shows some of the beauty of objects, and how they can be used for locking up other objects
-/// extending to add fungibility, as well as recooping storage gas at the end.
+/// ## How it works:
+/// 1. Owner calls `fractionalize_asset(nft, supply)` -- NFT is locked, `supply` fungible shares are minted
+/// 2. Shares can be traded freely via primary fungible stores
+/// 3. When one user holds all shares, they call `recombine_asset(metadata)` to burn shares and reclaim the NFT
 ///
-/// This approach here requires the number of shares to be determined up front, and for simplicity
-/// no decimals are added.
+/// ## Design decisions:
+/// - Uses a **named object** for the fractionalization container (deterministic address)
+/// - **Transfer is disabled** on the locked NFT via `TransferRef` (prevents moving the NFT while fractionalized)
+/// - **Decimals are 0** for simplicity (each share = 1 whole unit)
+/// - Supply is fixed at fractionalization time
+/// - The fungible asset metadata object persists forever, but no tokens exist after recombination
+///
+/// ## Key Aptos features demonstrated:
+/// - `primary_fungible_store::create_primary_store_enabled_fungible_asset`
+/// - `fungible_asset::generate_mint_ref` / `generate_burn_ref`
+/// - `object::disable_ungated_transfer` / `enable_ungated_transfer`
 module fraction_addr::fractional_token {
 
     use std::option;
