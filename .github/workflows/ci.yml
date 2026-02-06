@@ -10,46 +10,6 @@ jobs:
   compile:
     name: Compile Examples
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: composable-nfts
-            path: snippets/composable-nfts
-          - name: controlled-mint
-            path: snippets/controlled-mint
-          - name: data-structures-heap
-            path: snippets/data-structures/heap
-          - name: autonomous-objects
-            path: snippets/design-patterns/autonomous-objects
-          - name: error-codes
-            path: snippets/error-codes
-          - name: fa-lockup-example
-            path: snippets/fa-lockup-example
-          - name: fractional-token
-            path: snippets/fractional-token
-            # Uses --named-addresses instead of --dev due to broken TokenMinter dev-dependency
-            compile_flags: "--named-addresses fraction_addr=0x1337,minter=0x2337"
-          - name: liquid-nfts
-            path: snippets/liquid-nfts
-          - name: lootbox
-            path: snippets/lootbox
-          - name: modifying-nfts
-            path: snippets/modifying-nfts
-          - name: objects
-            path: snippets/objects
-          - name: parallel-nfts
-            path: snippets/parallel-nfts
-          - name: private-vs-public-dice-roll
-            path: snippets/private-vs-public/dice_roll
-          - name: private-vs-public-cheater
-            path: snippets/private-vs-public/cheater
-          - name: prover
-            path: snippets/prover
-          - name: storage
-            path: snippets/storage
-          - name: struct-capabilities
-            path: snippets/struct-capabilities
 
     steps:
       - name: Checkout repository
@@ -60,25 +20,55 @@ jobs:
           curl -fsSL "https://aptos.dev/scripts/install_cli.py" | python3
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Compile ${{ matrix.name }}
-        working-directory: ${{ matrix.path }}
-        run: aptos move compile ${{ matrix.compile_flags || '--dev' }}
+      - name: Compile all examples
+        run: |
+          packages=(
+            "snippets/composable-nfts"
+            "snippets/controlled-mint"
+            "snippets/data-structures/heap"
+            "snippets/design-patterns/autonomous-objects"
+            "snippets/error-codes"
+            "snippets/fa-lockup-example"
+            "snippets/liquid-nfts"
+            "snippets/lootbox"
+            "snippets/modifying-nfts"
+            "snippets/objects"
+            "snippets/parallel-nfts"
+            "snippets/private-vs-public/dice_roll"
+            "snippets/private-vs-public/cheater"
+            "snippets/prover"
+            "snippets/storage"
+            "snippets/struct-capabilities"
+          )
+
+          failed=0
+          for pkg in "${packages[@]}"; do
+            echo "::group::Compile $pkg"
+            if (cd "$pkg" && aptos move compile --dev); then
+              echo "::endgroup::"
+            else
+              echo "::endgroup::"
+              echo "::error::Failed to compile $pkg"
+              failed=1
+            fi
+          done
+
+          # fractional-token uses --named-addresses instead of --dev
+          # due to broken TokenMinter dev-dependency
+          echo "::group::Compile snippets/fractional-token"
+          if (cd snippets/fractional-token && aptos move compile --named-addresses fraction_addr=0x1337,minter=0x2337); then
+            echo "::endgroup::"
+          else
+            echo "::endgroup::"
+            echo "::error::Failed to compile snippets/fractional-token"
+            failed=1
+          fi
+
+          exit $failed
 
   test:
     name: Test Examples
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: data-structures-heap
-            path: snippets/data-structures/heap
-          - name: error-codes
-            path: snippets/error-codes
-          - name: fa-lockup-example
-            path: snippets/fa-lockup-example
-          - name: controlled-mint
-            path: snippets/controlled-mint
 
     steps:
       - name: Checkout repository
@@ -89,6 +79,25 @@ jobs:
           curl -fsSL "https://aptos.dev/scripts/install_cli.py" | python3
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Test ${{ matrix.name }}
-        working-directory: ${{ matrix.path }}
-        run: aptos move test --dev
+      - name: Run tests
+        run: |
+          packages=(
+            "snippets/data-structures/heap"
+            "snippets/error-codes"
+            "snippets/fa-lockup-example"
+            "snippets/controlled-mint"
+          )
+
+          failed=0
+          for pkg in "${packages[@]}"; do
+            echo "::group::Test $pkg"
+            if (cd "$pkg" && aptos move test --dev); then
+              echo "::endgroup::"
+            else
+              echo "::endgroup::"
+              echo "::error::Tests failed in $pkg"
+              failed=1
+            fi
+          done
+
+          exit $failed
