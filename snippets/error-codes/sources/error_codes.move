@@ -70,4 +70,40 @@ module deploy_addr::error_codes {
     entry fun throw_if_false(input: bool) {
         assert!(input == true, E_VALUE_NOT_TRUE)
     }
+
+    // ---- Tests ----
+
+    #[test]
+    /// Verifies that throw_if_false succeeds when given true
+    fun test_throw_if_false_with_true() {
+        throw_if_false(true);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = E_VALUE_NOT_TRUE)]
+    /// Verifies that throw_if_false aborts with E_VALUE_NOT_TRUE when given false
+    fun test_throw_if_false_with_false() {
+        throw_if_false(false);
+    }
+
+    #[test]
+    #[expected_failure(abort_code = E_ERROR_WITHOUT_MESSAGE)]
+    /// Verifies that throw_error_code_only aborts with E_ERROR_WITHOUT_MESSAGE
+    fun test_throw_error_code_only() {
+        throw_error_code_only();
+    }
+
+    #[test]
+    #[expected_failure(abort_code = E_USEFUL_ERROR)]
+    /// Verifies that throw_useful_error aborts with E_USEFUL_ERROR
+    fun test_throw_useful_error() {
+        throw_useful_error();
+    }
+
+    #[test]
+    #[expected_failure]
+    /// Verifies that throw_classified_error aborts with a classified error code
+    fun test_throw_classified_error() {
+        throw_classified_error();
+    }
 }
