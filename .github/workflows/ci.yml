@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  APTOS_CLI_VERSION: "7.14.2"
-
 jobs:
   compile:
     name: Compile Examples
