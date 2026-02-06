@@ -130,10 +130,11 @@ module fraction_addr::liquid_fungible_asset {
         }
     }
 
-    /// Allows for liquifying a token from the collection
+    /// Deposits NFTs into the liquidity pool in exchange for liquid fungible asset tokens.
     ///
-    /// Note: once a token is put into the
-    ///
+    /// The caller transfers their NFTs to the pool and receives fungible tokens equal to
+    /// `one_nft_in_fungible_assets * number_of_tokens`. Once deposited, the specific NFTs
+    /// cannot be chosen when claiming -- a random one is returned instead.
     entry fun liquify(
         caller: &signer,
         metadata: Object<LiquidTokenMetadata>,

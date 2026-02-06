@@ -1,7 +1,16 @@
-/// Simple object design to show how objects can be used in replacing standard resources
+/// Introduction to the Aptos Object model via a sticky note board example.
 ///
-/// The initial implementation is built to be extendable, and made to show first the differences between
-/// resources and objects.  The next tutorial will extend upon this, showing how objects can be extended.
+/// This module provides a side-by-side comparison of two approaches to storing data on-chain:
+///
+/// 1. **Resource-based** (`StickyNoteBoard`): Notes stored as structs in a vector on the user's account.
+///    Transferring requires removing from one vector and inserting into another (expensive for large notes).
+///
+/// 2. **Object-based** (`StickyNoteObjectBoard`): Notes stored as independent objects with their own addresses.
+///    Transferring only updates ownership metadata (cheap, regardless of note size).
+///
+/// ## Key Takeaway:
+/// Objects are more efficient for transferable data, especially when the data is large,
+/// because transfer cost is independent of data size.
 module 0x42::sticky_note {
 
     use std::option::{Self, Option};
