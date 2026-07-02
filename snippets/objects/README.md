@@ -40,7 +40,14 @@ Beginner
 
 Object-based sticky notes are cheaper to transfer than resource-based ones when the note content is large, because the object transfer only updates ownership metadata rather than moving the entire data structure.
 
-## Deploy & Test
+## Deploy & Run
+
+| | |
+|---|---|
+| **Package** | `snippets/objects` |
+| **Named address** | `0x42` |
+
+### Deploy
 
 ```bash
 aptos move publish --named-addresses 0x42=default --package-dir snippets/objects

@@ -60,17 +60,31 @@ ELSE (V1 enabled):
         Reject with E_ANTISNIPE_ENABLED
 ```
 
-## Deploy & Test
+## Deploy & Run
+
+| | |
+|---|---|
+| **Package** | `snippets/snipe-prevention` |
+| **Named address** | `antisnipe` |
+
+### Deploy
+
+This example must be deployed as a [code object](https://aptos.dev/en/build/smart-contracts/code-objects) so ownership checks work correctly.
 
 ```bash
-# Run unit tests
-aptos move test --dev --package-dir snippets/snipe-prevention
-
-# Compile only
-aptos move compile --dev --package-dir snippets/snipe-prevention
-
-# Deploy (requires code object deployment)
 aptos move deploy-object --named-addresses antisnipe=default --package-dir snippets/snipe-prevention
+```
+
+### Tests
+
+```bash
+aptos move test --dev --package-dir snippets/snipe-prevention
+```
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/snipe-prevention
 ```
 
 ## Related Examples

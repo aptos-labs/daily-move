@@ -43,7 +43,14 @@ Intermediate
 
 By using `token::create_numbered_token`, each mint operation is independent and can run in parallel across validators. The numbered token approach uses atomic counters internally.
 
-## Deploy & Test
+## Deploy & Run
+
+| | |
+|---|---|
+| **Package** | `snippets/parallel-nfts` |
+| **Named address** | `deploy_addr` |
+
+### Deploy
 
 ```bash
 aptos move publish --named-addresses deploy_addr=default --package-dir snippets/parallel-nfts

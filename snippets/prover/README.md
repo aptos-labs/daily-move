@@ -74,16 +74,23 @@ spec take_escrow {
 }
 ```
 
-## Running the Prover
+## Deploy & Run
 
-```bash
-aptos move prove --dev --package-dir snippets/prover
-```
+| | |
+|---|---|
+| **Package** | `snippets/prover` |
+| **Named address** | `deployer` |
 
-## Deploy
+### Deploy
 
 ```bash
 aptos move publish --named-addresses deployer=default --package-dir snippets/prover
+```
+
+### Prover
+
+```bash
+aptos move prove --dev --package-dir snippets/prover
 ```
 
 ## Related Examples

@@ -47,7 +47,16 @@ assert!(original_num_wins == new_num_wins, E_LOST); // abort if no new win
 
 Use `entry` (private entry) for functions where side effects (like fee payments) must persist regardless of outcome. Use `public entry` only when you want other contracts to be able to compose with your function.
 
-## Deploy & Test
+## Deploy & Run
+
+| | |
+|---|---|
+| **Packages** | `snippets/private-vs-public/dice_roll`, `snippets/private-vs-public/cheater` |
+| **Named address** | `deploy_addr` |
+
+### Deploy
+
+Deploy both packages to demonstrate the exploit. The cheater module depends on the dice roll module being published first.
 
 ```bash
 # Deploy the dice roll game

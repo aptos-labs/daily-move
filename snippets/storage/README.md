@@ -63,7 +63,14 @@ public(friend) fun create_object(caller: &signer): signer { ... }
 public(friend) fun check_owner<T: key>(caller_address: address, object: Object<T>) { ... }
 ```
 
-## Deploy & Test
+## Deploy & Run
+
+| | |
+|---|---|
+| **Package** | `snippets/storage` |
+| **Named address** | `deploy_addr` |
+
+### Deploy
 
 ```bash
 aptos move publish --named-addresses deploy_addr=default --package-dir snippets/storage

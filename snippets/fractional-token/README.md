@@ -54,17 +54,26 @@ Advanced
 - The fungible asset metadata object persists forever (even after recombination), but no tokens will exist
 - Only the holder of ALL shares can recombine
 
-## Running Tests
+## Deploy & Run
 
-```bash
-aptos move test --dev --package-dir snippets/fractional-token
-```
+| | |
+|---|---|
+| **Package** | `snippets/fractional-token` |
+| **Named address** | `fraction_addr` |
 
-## Deploy
+### Deploy
 
 ```bash
 aptos move publish --named-addresses fraction_addr=default --package-dir snippets/fractional-token
 ```
+
+### Tests
+
+```bash
+aptos move test --named-addresses fraction_addr=0x1337,minter=0x2337 --package-dir snippets/fractional-token
+```
+
+> **Note:** Tests require explicit named addresses because of a dev-dependency constraint on `TokenMinter`.
 
 ## Related Examples
 

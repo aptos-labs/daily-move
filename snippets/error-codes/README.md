@@ -35,10 +35,23 @@ const E_USEFUL_ERROR: u64 = 2;
 const E_ERROR_WITHOUT_MESSAGE: u64 = 1;
 ```
 
-## Deploy & Test
+## Deploy & Run
+
+| | |
+|---|---|
+| **Package** | `snippets/error-codes` |
+| **Named address** | `deploy_addr` |
+
+### Deploy
 
 ```bash
 aptos move publish --named-addresses deploy_addr=default --package-dir snippets/error-codes
+```
+
+### Tests
+
+```bash
+aptos move test --dev --package-dir snippets/error-codes
 ```
 
 ## Related Examples

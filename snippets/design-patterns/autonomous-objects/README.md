@@ -57,7 +57,14 @@ let object = object::address_to_object<ObjectRefs>(object_address);
 assert!(caller_address == object::owner(object), E_NOT_OBJECT_OWNER);
 ```
 
-## Deploy & Test
+## Deploy & Run
+
+| | |
+|---|---|
+| **Package** | `snippets/design-patterns/autonomous-objects` |
+| **Named address** | `deploy_address` |
+
+### Deploy
 
 ```bash
 aptos move publish --named-addresses deploy_address=default --package-dir snippets/design-patterns/autonomous-objects
