@@ -255,6 +255,8 @@ snippets/
 │   ├── Move.toml
 │   └── sources/
 │       └── modify_nfts.move
+├── move-2/                   # Move 2 feature reference (redirects to examples)
+│   └── README.md
 ├── parallel-nfts/            # Parallelized public NFT minting
 │   ├── Move.toml
 │   └── sources/
