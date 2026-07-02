@@ -55,16 +55,23 @@ Advanced
    - Restore Face description -> "Face wifout hat"
 ```
 
-## Running Tests
+## Deploy & Run
 
-```bash
-aptos move test --dev --package-dir snippets/composable-nfts
-```
+| | |
+|---|---|
+| **Package** | `snippets/composable-nfts` |
+| **Named address** | `deploy_addr` |
 
-## Deploy
+### Deploy
 
 ```bash
 aptos move publish --named-addresses deploy_addr=default --package-dir snippets/composable-nfts
+```
+
+### Tests
+
+```bash
+aptos move test --dev --package-dir snippets/composable-nfts
 ```
 
 ## Related Examples

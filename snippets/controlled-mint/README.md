@@ -38,10 +38,23 @@ Intermediate
 2. **Create a collection** via `create_collection` with name, description, URI, and optional royalty
 3. **Mint tokens** via `mint` by passing vectors of descriptions, URIs, and destination addresses
 
-## Deploy & Test
+## Deploy & Run
+
+| | |
+|---|---|
+| **Package** | `snippets/controlled-mint` |
+| **Named address** | `deploy_addr` |
+
+### Deploy
 
 ```bash
 aptos move publish --named-addresses deploy_addr=default --package-dir snippets/controlled-mint
+```
+
+### Tests
+
+```bash
+aptos move test --dev --package-dir snippets/controlled-mint
 ```
 
 ## Related Examples

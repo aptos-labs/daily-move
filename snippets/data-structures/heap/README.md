@@ -46,13 +46,20 @@ Intermediate
 | `from_vec` | O(n log n) | O(1) |
 | `heap_sort` | O(n log n) | O(n) |
 
-## Running Tests
+## Deploy & Run
+
+| | |
+|---|---|
+| **Package** | `snippets/data-structures/heap` |
+| **Named address** | `deploy_addr` |
+
+### Tests
 
 ```bash
 aptos move test --dev --package-dir snippets/data-structures/heap
 ```
 
-## Running the Prover
+### Prover
 
 ```bash
 aptos move prove --dev --package-dir snippets/data-structures/heap

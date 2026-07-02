@@ -54,7 +54,14 @@ let Envelope {
 
 If you forget to handle `coins` or `legacy_tokens`, the code will not compile -- preventing asset loss at the language level.
 
-## Deploy & Test
+## Deploy & Run
+
+| | |
+|---|---|
+| **Package** | `snippets/struct-capabilities` |
+| **Named address** | `deploy_addr` |
+
+### Deploy
 
 ```bash
 aptos move publish --named-addresses deploy_addr=default --package-dir snippets/struct-capabilities

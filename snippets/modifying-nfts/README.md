@@ -48,7 +48,14 @@ let object_signer = object::generate_signer_for_extending(&controller.extend_ref
 move_to(&object_signer, CollectionPoints { total_points });
 ```
 
-## Deploy & Test
+## Deploy & Run
+
+| | |
+|---|---|
+| **Package** | `snippets/modifying-nfts` |
+| **Named address** | `deploy_addr` |
+
+### Deploy
 
 ```bash
 aptos move publish --named-addresses deploy_addr=default --package-dir snippets/modifying-nfts

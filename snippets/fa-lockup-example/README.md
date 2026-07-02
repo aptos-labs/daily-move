@@ -59,16 +59,23 @@ match (&Escrow[escrow_address]) {
 };
 ```
 
-## Running Tests
+## Deploy & Run
 
-```bash
-aptos move test --move-2 --dev --package-dir snippets/fa-lockup-example
-```
+| | |
+|---|---|
+| **Package** | `snippets/fa-lockup-example` |
+| **Named address** | `lockup_deployer` |
 
-## Deploy
+### Deploy
 
 ```bash
 aptos move publish --named-addresses lockup_deployer=default --package-dir snippets/fa-lockup-example
+```
+
+### Tests
+
+```bash
+aptos move test --dev --package-dir snippets/fa-lockup-example
 ```
 
 ## Related Examples

@@ -11,6 +11,7 @@ A curated collection of Move language examples for the [Aptos](https://aptos.dev
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
+- [Example Documentation](#example-documentation)
 - [Examples by Category](#examples-by-category)
   - [Beginner](#beginner)
   - [Intermediate](#intermediate)
@@ -18,6 +19,7 @@ A curated collection of Move language examples for the [Aptos](https://aptos.dev
 - [Example Index](#example-index)
 - [Concepts Covered](#concepts-covered)
 - [Project Structure](#project-structure)
+- [Named Addresses](#named-addresses)
 
 ---
 
@@ -76,63 +78,82 @@ After deploying, interact with your contract via the [Aptos Explorer](https://ex
 
 ---
 
+## Example Documentation
+
+Every example has a `README.md` in its package directory. Each follows the same structure so you can scan any example quickly:
+
+| Section | Description |
+|---------|-------------|
+| **Overview** | What the example demonstrates and when to use it |
+| **Difficulty** | `Beginner`, `Intermediate`, or `Advanced` |
+| **Concepts Demonstrated** | Move language and Aptos framework topics covered |
+| **Key Structs / Key Functions** | Tables summarizing the main types and entry points |
+| **Deploy & Run** | Package path, named address, and commands to deploy, test, or run the prover |
+| **Related Examples** | Cross-links to similar or prerequisite examples |
+
+See [Named Addresses](#named-addresses) below for the address placeholder each package expects at deploy time.
+
+For a summary of Move 2 features used across examples, see [snippets/move-2/README.md](snippets/move-2/README.md).
+
+---
+
 ## Examples by Category
 
 ### Beginner
 
-| Example | Directory | Description |
-|---------|-----------|-------------|
-| [Error Codes](snippets/error-codes/) | `snippets/error-codes/` | How to define and use error codes with doc comments for readable error messages |
-| [Objects (Sticky Notes)](snippets/objects/) | `snippets/objects/` | Introduction to the Aptos Object model, comparing resources vs objects |
-| [Private vs Public Functions](snippets/private-vs-public/) | `snippets/private-vs-public/` | Function visibility and why it matters for security (with a cheater example) |
+| Example | Directory | README | Description |
+|---------|-----------|--------|-------------|
+| [Error Codes](snippets/error-codes/) | `snippets/error-codes/` | [README](snippets/error-codes/README.md) | How to define and use error codes with doc comments for readable error messages |
+| [Objects (Sticky Notes)](snippets/objects/) | `snippets/objects/` | [README](snippets/objects/README.md) | Introduction to the Aptos Object model, comparing resources vs objects |
+| [Private vs Public Functions](snippets/private-vs-public/) | `snippets/private-vs-public/` | [README](snippets/private-vs-public/README.md) | Function visibility and why it matters for security (with a cheater example) |
 
 ### Intermediate
 
-| Example | Directory | Description |
-|---------|-----------|-------------|
-| [Controlled Mint](snippets/controlled-mint/) | `snippets/controlled-mint/` | Creator-controlled NFT minting with royalty support |
-| [Data Structures (Min Heap)](snippets/data-structures/heap/) | `snippets/data-structures/heap/` | Min heap implementation with formal verification specs |
-| [Design Patterns: Autonomous Objects](snippets/design-patterns/autonomous-objects/) | `snippets/design-patterns/autonomous-objects/` | Creating objects that can act autonomously via extend refs |
-| [Modifying NFTs](snippets/modifying-nfts/) | `snippets/modifying-nfts/` | How to modify NFT properties, URIs, and extend collections with custom data |
-| [Parallel NFT Minting](snippets/parallel-nfts/) | `snippets/parallel-nfts/` | Parallelized NFT minting using object-owned collections |
-| [Storage Patterns](snippets/storage/) | `snippets/storage/` | Comparison of Vector, SimpleMap, Table, SmartTable, and SmartVector with gas benchmarks |
-| [Struct Capabilities (Mailbox)](snippets/struct-capabilities/) | `snippets/struct-capabilities/` | Using structs for capability-based access control in a mailbox system |
+| Example | Directory | README | Description |
+|---------|-----------|--------|-------------|
+| [Controlled Mint](snippets/controlled-mint/) | `snippets/controlled-mint/` | [README](snippets/controlled-mint/README.md) | Creator-controlled NFT minting with royalty support |
+| [Data Structures (Min Heap)](snippets/data-structures/heap/) | `snippets/data-structures/heap/` | [README](snippets/data-structures/heap/README.md) | Min heap implementation with formal verification specs |
+| [Design Patterns: Autonomous Objects](snippets/design-patterns/autonomous-objects/) | `snippets/design-patterns/autonomous-objects/` | [README](snippets/design-patterns/autonomous-objects/README.md) | Creating objects that can act autonomously via extend refs |
+| [Modifying NFTs](snippets/modifying-nfts/) | `snippets/modifying-nfts/` | [README](snippets/modifying-nfts/README.md) | How to modify NFT properties, URIs, and extend collections with custom data |
+| [Parallel NFT Minting](snippets/parallel-nfts/) | `snippets/parallel-nfts/` | [README](snippets/parallel-nfts/README.md) | Parallelized NFT minting using object-owned collections |
+| [Snipe Prevention](snippets/snipe-prevention/) | `snippets/snipe-prevention/` | [README](snippets/snipe-prevention/README.md) | Anti-snipe protection for token launches using dispatchable fungible assets |
+| [Storage Patterns](snippets/storage/) | `snippets/storage/` | [README](snippets/storage/README.md) | Comparison of Vector, SimpleMap, Table, SmartTable, and SmartVector with gas benchmarks |
+| [Struct Capabilities (Mailbox)](snippets/struct-capabilities/) | `snippets/struct-capabilities/` | [README](snippets/struct-capabilities/README.md) | Using structs for capability-based access control in a mailbox system |
 
 ### Advanced
 
-| Example | Directory | Description |
-|---------|-----------|-------------|
-| [Composable NFTs](snippets/composable-nfts/) | `snippets/composable-nfts/` | Dynamic composable NFTs where a Face can equip/unequip a Hat, changing the token image |
-| [FA Lockup / Escrow](snippets/fa-lockup-example/) | `snippets/fa-lockup-example/` | Time-locked fungible asset escrow with dispatchable transfers |
-| [Fractional Token](snippets/fractional-token/) | `snippets/fractional-token/` | Fractionalizing a digital asset into fungible tokens and recombining them |
-| [Liquid NFTs](snippets/liquid-nfts/) | `snippets/liquid-nfts/` | NFT liquidity pools using Coin, Legacy Token, and Fungible Asset standards |
-| [Lootbox / Mystery Box](snippets/lootbox/) | `snippets/lootbox/` | On-chain mystery boxes using Aptos randomness, supporting coins, FAs, and NFTs |
-| [Prover (Payment Escrow)](snippets/prover/) | `snippets/prover/` | Formal verification with the Move Prover on a payment escrow contract |
-| [Snipe Prevention](snippets/snipe-prevention/) | `snippets/snipe-prevention/` | Anti-snipe protection for token launches using dispatchable fungible assets |
+| Example | Directory | README | Description |
+|---------|-----------|--------|-------------|
+| [Composable NFTs](snippets/composable-nfts/) | `snippets/composable-nfts/` | [README](snippets/composable-nfts/README.md) | Dynamic composable NFTs where a Face can equip/unequip a Hat, changing the token image |
+| [FA Lockup / Escrow](snippets/fa-lockup-example/) | `snippets/fa-lockup-example/` | [README](snippets/fa-lockup-example/README.md) | Time-locked fungible asset escrow with dispatchable transfers |
+| [Fractional Token](snippets/fractional-token/) | `snippets/fractional-token/` | [README](snippets/fractional-token/README.md) | Fractionalizing a digital asset into fungible tokens and recombining them |
+| [Liquid NFTs](snippets/liquid-nfts/) | `snippets/liquid-nfts/` | [README](snippets/liquid-nfts/README.md) | NFT liquidity pools using Coin, Legacy Token, and Fungible Asset standards |
+| [Lootbox / Mystery Box](snippets/lootbox/) | `snippets/lootbox/` | [README](snippets/lootbox/README.md) | On-chain mystery boxes using Aptos randomness, supporting coins, FAs, and NFTs |
+| [Prover (Payment Escrow)](snippets/prover/) | `snippets/prover/` | [README](snippets/prover/README.md) | Formal verification with the Move Prover on a payment escrow contract |
 
 ---
 
 ## Example Index
 
-| # | Example | Key Concepts | Move 2 Features Used | Has Tests |
-|---|---------|-------------|---------------------|-----------|
-| 1 | [error-codes](snippets/error-codes/) | Error codes, doc comments, `abort`, `assert!` | Receiver style | No |
-| 2 | [objects](snippets/objects/) | Object model, resources vs objects, `ExtendRef`, `DeleteRef`, `TransferRef` | Receiver style, index notation | No |
-| 3 | [private-vs-public](snippets/private-vs-public/) | Function visibility (`public`, `public entry`, `entry`, private), security | Receiver style, index notation | No |
-| 4 | [controlled-mint](snippets/controlled-mint/) | Token V2 minting, collections, royalties, named objects | Receiver style, index notation, `for` loops | No |
-| 5 | [data-structures/heap](snippets/data-structures/heap/) | Min heap, heap sort, formal verification specs | Receiver style, `for` loops | Yes |
-| 6 | [design-patterns/autonomous-objects](snippets/design-patterns/autonomous-objects/) | Autonomous object pattern, ownership permission pattern | Receiver style, index notation | No |
-| 7 | [modifying-nfts](snippets/modifying-nfts/) | Mutable NFTs, `MutatorRef`, `BurnRef`, extending objects | Receiver style, index notation | No |
-| 8 | [parallel-nfts](snippets/parallel-nfts/) | Parallelized minting, object-owned collections, numbered tokens | Receiver style, index notation | No |
-| 9 | [storage](snippets/storage/) | Vector, SimpleMap, Table, SmartTable, SmartVector, gas comparison | Receiver style, index notation, `for` loops | No |
-| 10 | [struct-capabilities](snippets/struct-capabilities/) | Capability pattern, `SmartTable`, `SmartVector`, envelopes | Receiver style, index notation | No |
-| 11 | [composable-nfts](snippets/composable-nfts/) | Composable tokens, dynamic URIs, transfer locking | Receiver style, index notation | Yes |
-| 12 | [fa-lockup-example](snippets/fa-lockup-example/) | Fungible asset escrow, time locks, enum types, `match` | Receiver style, index notation, enums, `match`, `for` loops | Yes |
-| 13 | [fractional-token](snippets/fractional-token/) | Fractionalization, fungible assets, primary stores | Receiver style, index notation | Yes |
-| 14 | [liquid-nfts](snippets/liquid-nfts/) | Liquidity pools, Coin vs FA, legacy tokens, pseudorandom | Receiver style, index notation, `for` loops | Yes |
-| 15 | [lootbox](snippets/lootbox/) | Randomness API, multi-asset boxes, soulbound tickets | Receiver style, index notation, `for` loops | No |
-| 16 | [prover](snippets/prover/) | Move Prover, formal specs, invariants, schemas | Receiver style, index notation | No |
-| 17 | [snipe-prevention](snippets/snipe-prevention/) | Dispatchable FA hooks, anti-snipe, allowlists, enum types | Receiver style, index notation, enums, `match` | Yes |
+| # | Example | Difficulty | Key Concepts | Move 2 Features Used | Tests |
+|---|---------|------------|-------------|---------------------|-------|
+| 1 | [error-codes](snippets/error-codes/README.md) | Beginner | Error codes, doc comments, `abort`, `assert!` | Receiver style | Yes |
+| 2 | [objects](snippets/objects/README.md) | Beginner | Object model, resources vs objects, `ExtendRef`, `DeleteRef`, `TransferRef` | Receiver style, index notation | — |
+| 3 | [private-vs-public](snippets/private-vs-public/README.md) | Beginner | Function visibility (`public`, `public entry`, `entry`, private), security | Receiver style, index notation | — |
+| 4 | [controlled-mint](snippets/controlled-mint/README.md) | Intermediate | Token V2 minting, collections, royalties, named objects | Receiver style, index notation, `for` loops | Yes |
+| 5 | [data-structures/heap](snippets/data-structures/heap/README.md) | Intermediate | Min heap, heap sort, formal verification specs | Receiver style, `for` loops | Yes + Prover |
+| 6 | [design-patterns/autonomous-objects](snippets/design-patterns/autonomous-objects/README.md) | Intermediate | Autonomous object pattern, ownership permission pattern | Receiver style, index notation | — |
+| 7 | [modifying-nfts](snippets/modifying-nfts/README.md) | Intermediate | Mutable NFTs, `MutatorRef`, `BurnRef`, extending objects | Receiver style, index notation | — |
+| 8 | [parallel-nfts](snippets/parallel-nfts/README.md) | Intermediate | Parallelized minting, object-owned collections, numbered tokens | Receiver style, index notation | — |
+| 9 | [snipe-prevention](snippets/snipe-prevention/README.md) | Intermediate | Dispatchable FA hooks, anti-snipe, allowlists, enum types | Receiver style, index notation, enums, `match` | Yes |
+| 10 | [storage](snippets/storage/README.md) | Intermediate | Vector, SimpleMap, Table, SmartTable, SmartVector, gas comparison | Receiver style, index notation, `for` loops | — |
+| 11 | [struct-capabilities](snippets/struct-capabilities/README.md) | Intermediate | Capability pattern, `SmartTable`, `SmartVector`, envelopes | Receiver style, index notation | — |
+| 12 | [composable-nfts](snippets/composable-nfts/README.md) | Advanced | Composable tokens, dynamic URIs, transfer locking | Receiver style, index notation | Yes |
+| 13 | [fa-lockup-example](snippets/fa-lockup-example/README.md) | Advanced | Fungible asset escrow, time locks, enum types, `match` | Receiver style, index notation, enums, `match`, `for` loops | Yes |
+| 14 | [fractional-token](snippets/fractional-token/README.md) | Advanced | Fractionalization, fungible assets, primary stores | Receiver style, index notation | Yes |
+| 15 | [liquid-nfts](snippets/liquid-nfts/README.md) | Advanced | Liquidity pools, Coin vs FA, legacy tokens, pseudorandom | Receiver style, index notation, `for` loops | Yes |
+| 16 | [lootbox](snippets/lootbox/README.md) | Advanced | Randomness API, multi-asset boxes, soulbound tickets | Receiver style, index notation, `for` loops | — |
+| 17 | [prover](snippets/prover/README.md) | Advanced | Move Prover, formal specs, invariants, schemas | Receiver style, index notation | Prover |
 
 ---
 
@@ -234,6 +255,8 @@ snippets/
 │   ├── Move.toml
 │   └── sources/
 │       └── modify_nfts.move
+├── move-2/                   # Move 2 feature reference (redirects to examples)
+│   └── README.md
 ├── parallel-nfts/            # Parallelized public NFT minting
 │   ├── Move.toml
 │   └── sources/
@@ -251,6 +274,10 @@ snippets/
 │   ├── Move.toml
 │   └── sources/
 │       └── payment_escrow.move
+├── snipe-prevention/         # Anti-snipe protection for token launches
+│   ├── Move.toml
+│   └── sources/
+│       └── antisnipe_token.move
 ├── snipe-prevention/         # Anti-snipe protection for token launches
 │   ├── Move.toml
 │   └── sources/

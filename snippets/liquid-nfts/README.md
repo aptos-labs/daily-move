@@ -38,11 +38,11 @@ Advanced
 
 ## Key Functions (per implementation)
 
-| Function | Description |
-|----------|-------------|
-| `create_liquid_token` | Creates the liquidity pool for a collection |
-| `liquify` | Deposits NFTs into the pool, receives fungible tokens |
-| `claim` | Pays fungible tokens, receives random NFTs from pool |
+| Function | Visibility | Description |
+|----------|-----------|-------------|
+| `create_liquid_token` | `entry` | Creates the liquidity pool for a collection |
+| `liquify` | `entry` | Deposits NFTs into the pool, receives fungible tokens |
+| `claim` | `entry` | Pays fungible tokens, receives random NFTs from pool |
 
 ## Pseudorandom Selection
 
@@ -57,16 +57,23 @@ let val = from_bcs::to_u256(hash) % (pool_size as u256);
 
 > Note: For production use, consider the Aptos on-chain randomness API instead.
 
-## Running Tests
+## Deploy & Run
 
-```bash
-aptos move test --dev --package-dir snippets/liquid-nfts
-```
+| | |
+|---|---|
+| **Package** | `snippets/liquid-nfts` |
+| **Named address** | `fraction_addr` |
 
-## Deploy
+### Deploy
 
 ```bash
 aptos move publish --named-addresses fraction_addr=default --package-dir snippets/liquid-nfts
+```
+
+### Tests
+
+```bash
+aptos move test --dev --package-dir snippets/liquid-nfts
 ```
 
 ## Related Examples
