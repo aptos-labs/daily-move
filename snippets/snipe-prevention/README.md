@@ -65,26 +65,28 @@ ELSE (V1 enabled):
 | | |
 |---|---|
 | **Package** | `snippets/snipe-prevention` |
+| **Module** | `antisnipe::antisnipe_token` |
+| **Source** | `sources/antisnipe_token.move` |
 | **Named address** | `antisnipe` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/snipe-prevention
+```
 
 ### Deploy
 
-This example must be deployed as a [code object](https://aptos.dev/en/build/smart-contracts/code-objects) so ownership checks work correctly.
+This example must be deployed as a [code object](https://aptos.dev/en/build/smart-contracts/code-objects) so ownership checks work correctly. Do not use `aptos move publish`.
 
 ```bash
-aptos move deploy-object --named-addresses antisnipe=default --package-dir snippets/snipe-prevention
+aptos move deploy-object --assume-yes --named-addresses antisnipe=default --package-dir snippets/snipe-prevention
 ```
 
 ### Tests
 
 ```bash
 aptos move test --dev --package-dir snippets/snipe-prevention
-```
-
-### Compile
-
-```bash
-aptos move compile --dev --package-dir snippets/snipe-prevention
 ```
 
 ## Related Examples

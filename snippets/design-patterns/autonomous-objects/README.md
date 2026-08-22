@@ -62,12 +62,20 @@ assert!(caller_address == object::owner(object), E_NOT_OBJECT_OWNER);
 | | |
 |---|---|
 | **Package** | `snippets/design-patterns/autonomous-objects` |
-| **Named address** | `deploy_address` |
+| **Module** | `deploy_address::base` |
+| **Source** | `sources/base.move` |
+| **Named address** | `deploy_address` (not `deploy_addr`) |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/design-patterns/autonomous-objects
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses deploy_address=default --package-dir snippets/design-patterns/autonomous-objects
+aptos move publish --assume-yes --named-addresses deploy_address=default --package-dir snippets/design-patterns/autonomous-objects
 ```
 
 ## Related Examples

@@ -66,12 +66,20 @@ entry fun open_box<CoinType0, CoinType1, CoinType2>(
 | | |
 |---|---|
 | **Package** | `snippets/lootbox` |
+| **Module** | `mystery_addr::mystery_box` |
+| **Source** | `sources/mystery_box.move` |
 | **Named address** | `mystery_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/lootbox
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses mystery_addr=default --package-dir snippets/lootbox
+aptos move publish --assume-yes --named-addresses mystery_addr=default --package-dir snippets/lootbox
 ```
 
 ## Related Examples

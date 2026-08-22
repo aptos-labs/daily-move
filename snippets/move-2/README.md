@@ -1,6 +1,8 @@
 # Move 2
 
-All examples in this repository use **Move 2** syntax. The `move-2` directory previously held the heap example, which now lives at [data-structures/heap/](../data-structures/heap/).
+All examples in this repository use **Move 2** syntax. The `move-2` directory previously held the heap example, which now lives at [data-structures/heap/](../data-structures/heap/). There is no `Move.toml` here — this page is a feature index only.
+
+Coding agents: compile/test commands and named addresses live in [AGENTS.md](../../AGENTS.md).
 
 ## Move 2 Features Used Across Examples
 

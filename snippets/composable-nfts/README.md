@@ -60,12 +60,20 @@ Advanced
 | | |
 |---|---|
 | **Package** | `snippets/composable-nfts` |
+| **Module** | `deploy_addr::composable_nfts` |
+| **Source** | `sources/composable_nfts.move` |
 | **Named address** | `deploy_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/composable-nfts
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses deploy_addr=default --package-dir snippets/composable-nfts
+aptos move publish --assume-yes --named-addresses deploy_addr=default --package-dir snippets/composable-nfts
 ```
 
 ### Tests

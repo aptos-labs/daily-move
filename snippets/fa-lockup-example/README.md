@@ -64,12 +64,20 @@ match (&Escrow[escrow_address]) {
 | | |
 |---|---|
 | **Package** | `snippets/fa-lockup-example` |
+| **Module** | `lockup_deployer::fa_lockup` |
+| **Source** | `sources/lockup.move` |
 | **Named address** | `lockup_deployer` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/fa-lockup-example
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses lockup_deployer=default --package-dir snippets/fa-lockup-example
+aptos move publish --assume-yes --named-addresses lockup_deployer=default --package-dir snippets/fa-lockup-example
 ```
 
 ### Tests

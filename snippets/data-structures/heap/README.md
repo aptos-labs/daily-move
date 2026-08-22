@@ -51,7 +51,15 @@ Intermediate
 | | |
 |---|---|
 | **Package** | `snippets/data-structures/heap` |
+| **Module** | `deploy_addr::min_heap_u64` |
+| **Source** | `sources/min_heap_u64.move` |
 | **Named address** | `deploy_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/data-structures/heap
+```
 
 ### Tests
 

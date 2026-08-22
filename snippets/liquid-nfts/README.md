@@ -22,12 +22,12 @@ Advanced
 
 ## Module Structure
 
-| Module | File | Token Standard | Fungible Standard |
-|--------|------|---------------|-------------------|
-| `common` | `common.move` | -- | -- | Shared utilities (object creation, pseudorandom, coin/FA creation) |
-| `liquid_coin` | `liquid_coin.move` | Token Objects (V2) | Coin |
-| `liquid_coin_legacy` | `liquid_coin_legacy.move` | Legacy Tokens (V1) | Coin |
-| `liquid_fungible_asset` | `liquid_fungible_asset.move` | Token Objects (V2) | Fungible Asset |
+| Module | File | Token Standard | Fungible Standard | Role |
+|--------|------|----------------|-------------------|------|
+| `common` | `common.move` | — | — | Shared utilities (object creation, pseudorandom, coin/FA creation) |
+| `liquid_coin` | `liquid_coin.move` | Token Objects (V2) | Coin | Liquidity pool |
+| `liquid_coin_legacy` | `liquid_coin_legacy.move` | Legacy Tokens (V1) | Coin | Liquidity pool |
+| `liquid_fungible_asset` | `liquid_fungible_asset.move` | Token Objects (V2) | Fungible Asset | Liquidity pool |
 
 ## How It Works
 
@@ -62,12 +62,20 @@ let val = from_bcs::to_u256(hash) % (pool_size as u256);
 | | |
 |---|---|
 | **Package** | `snippets/liquid-nfts` |
+| **Modules** | `fraction_addr::common`, `liquid_coin`, `liquid_coin_legacy`, `liquid_fungible_asset` |
+| **Sources** | `sources/common.move`, `liquid_coin.move`, `liquid_coin_legacy.move`, `liquid_fungible_asset.move` |
 | **Named address** | `fraction_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/liquid-nfts
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses fraction_addr=default --package-dir snippets/liquid-nfts
+aptos move publish --assume-yes --named-addresses fraction_addr=default --package-dir snippets/liquid-nfts
 ```
 
 ### Tests

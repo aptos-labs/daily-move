@@ -48,12 +48,20 @@ By using `token::create_numbered_token`, each mint operation is independent and 
 | | |
 |---|---|
 | **Package** | `snippets/parallel-nfts` |
+| **Module** | `deploy_addr::parallel_mint` |
+| **Source** | `sources/parallel_mint.move` |
 | **Named address** | `deploy_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/parallel-nfts
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses deploy_addr=default --package-dir snippets/parallel-nfts
+aptos move publish --assume-yes --named-addresses deploy_addr=default --package-dir snippets/parallel-nfts
 ```
 
 ## Related Examples
