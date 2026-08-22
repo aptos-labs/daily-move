@@ -1,0 +1,45 @@
+# Aptos Move Examples (daily-move)
+
+> Standalone Move 2 snippets for the Aptos blockchain. Each package under `snippets/` teaches one concept (objects, tokens, storage, verification). Compile with the Aptos CLI; no monorepo workspace.
+
+Coding agents: read [AGENTS.md](AGENTS.md) first (commands, named addresses, non-interactive CLI, CI vs local tests). Humans: [README.md](README.md).
+
+All examples use Move 2 (receiver-style calls, index notation, `for` loops, enums/`match` where noted).
+
+## Agent instructions
+
+- [AGENTS.md](AGENTS.md): compile/test/deploy commands, package catalog, Move 2 conventions, gotchas
+- [README.md](README.md): category index, named-address table, project layout
+- [Move 2 feature map](snippets/move-2/README.md): which examples use receiver style, index notation, enums, `match`, `for`
+
+## Beginner
+
+- [Error codes](snippets/error-codes/README.md): `///` doc comments on `E_` constants; `abort` vs `assert!`
+- [Objects (sticky notes)](snippets/objects/README.md): resources vs objects; `ExtendRef` / `DeleteRef` / `TransferRef`; module is `0x42::sticky_note`
+- [Private vs public functions](snippets/private-vs-public/README.md): `entry` vs `public entry` and why a wrapper module can cheat
+
+## Intermediate
+
+- [Controlled mint](snippets/controlled-mint/README.md): Token V2 creator mint, royalties, named objects
+- [Min heap](snippets/data-structures/heap/README.md): custom data structure plus Move Prover specs
+- [Autonomous objects](snippets/design-patterns/autonomous-objects/README.md): object signer via `ExtendRef`; named address `deploy_address`
+- [Modifying NFTs](snippets/modifying-nfts/README.md): `MutatorRef`, `BurnRef`, extending objects
+- [Parallel NFT minting](snippets/parallel-nfts/README.md): object-owned collection, public numbered mint
+- [Snipe prevention](snippets/snipe-prevention/README.md): dispatchable FA deposit hook; deploy with `deploy-object`
+- [Storage patterns](snippets/storage/README.md): Vector, SimpleMap, Table, SmartTable, SmartVector plus gas notes
+- [Struct capabilities (mailbox)](snippets/struct-capabilities/README.md): non-droppable envelopes; capability-style safety
+
+## Advanced
+
+- [Composable NFTs](snippets/composable-nfts/README.md): nest a Hat in a Face; lock transfer; mutate URI
+- [FA lockup / escrow](snippets/fa-lockup-example/README.md): Move 2 enums, `match`, time-locked fungible escrow
+- [Fractional token](snippets/fractional-token/README.md): NFT → FA shares → recombine; compile **without** `--dev`
+- [Liquid NFTs](snippets/liquid-nfts/README.md): Coin vs FA vs legacy token liquidity pools
+- [Lootbox](snippets/lootbox/README.md): `#[randomness]` private entry; multi-asset boxes
+- [Prover (payment escrow)](snippets/prover/README.md): `spec`, invariants, schemas; `aptos move prove`
+
+## Optional
+
+- [Aptos CLI — Move packages](https://aptos.dev/build/cli/working-with-move-contracts): compile, test, publish flags
+- [Aptos objects](https://aptos.dev/build/smart-contracts/objects): object model reference
+- [Move on Aptos](https://aptos.dev/build/smart-contracts): language and framework docs

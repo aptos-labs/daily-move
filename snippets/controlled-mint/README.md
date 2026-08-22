@@ -43,12 +43,20 @@ Intermediate
 | | |
 |---|---|
 | **Package** | `snippets/controlled-mint` |
+| **Module** | `deploy_addr::controlled_mint` |
+| **Source** | `sources/controlled_mint.move` |
 | **Named address** | `deploy_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/controlled-mint
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses deploy_addr=default --package-dir snippets/controlled-mint
+aptos move publish --assume-yes --named-addresses deploy_addr=default --package-dir snippets/controlled-mint
 ```
 
 ### Tests

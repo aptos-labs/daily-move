@@ -52,18 +52,24 @@ Use `entry` (private entry) for functions where side effects (like fee payments)
 | | |
 |---|---|
 | **Packages** | `snippets/private-vs-public/dice_roll`, `snippets/private-vs-public/cheater` |
+| **Modules** | `deploy_addr::dice_roll`, `deploy_addr::cheater` |
+| **Sources** | `dice_roll/sources/dice_roll.move`, `cheater/sources/cheater.move` |
 | **Named address** | `deploy_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/private-vs-public/dice_roll
+aptos move compile --dev --package-dir snippets/private-vs-public/cheater
+```
 
 ### Deploy
 
 Deploy both packages to demonstrate the exploit. The cheater module depends on the dice roll module being published first.
 
 ```bash
-# Deploy the dice roll game
-aptos move publish --named-addresses deploy_addr=default --package-dir snippets/private-vs-public/dice_roll
-
-# Deploy the cheater (separate package)
-aptos move publish --named-addresses deploy_addr=default --package-dir snippets/private-vs-public/cheater
+aptos move publish --assume-yes --named-addresses deploy_addr=default --package-dir snippets/private-vs-public/dice_roll
+aptos move publish --assume-yes --named-addresses deploy_addr=default --package-dir snippets/private-vs-public/cheater
 ```
 
 ## Related Examples

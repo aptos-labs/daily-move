@@ -4,6 +4,8 @@ A curated collection of Move language examples for the [Aptos](https://aptos.dev
 
 > **Originally created by [@gregnazario](https://twitter.com/gregnazario)** as a series of educational tweets on learning Move piece by piece.
 
+**Coding agents:** start at [AGENTS.md](AGENTS.md) (commands, named addresses, non-interactive CLI). Doc index: [llms.txt](llms.txt).
+
 ---
 
 ## Table of Contents
@@ -11,6 +13,7 @@ A curated collection of Move language examples for the [Aptos](https://aptos.dev
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
+- [For coding agents](#for-coding-agents)
 - [Example Documentation](#example-documentation)
 - [Examples by Category](#examples-by-category)
   - [Beginner](#beginner)
@@ -40,47 +43,80 @@ All examples use **Move 2** syntax, including:
 
 - [Aptos CLI](https://aptos.dev/tools/aptos-cli/) installed
 - Basic familiarity with Move language concepts (modules, structs, resources, signers)
-- An Aptos account (can be created via `aptos init`)
+- An Aptos account only if you **publish** (not required to compile or test)
 
 ---
 
 ## Quick Start
 
-### Deploy an example
+Run these from the repository root. Replace `<example-dir>` with a path from the [example index](#example-index). Most packages use the named address `deploy_addr`; exceptions are listed under [Named Addresses](#named-addresses).
+
+### Compile (no account)
 
 ```bash
-# Set your address
-MY_ADDR=0x12345
-aptos move publish --named-addresses deploy_addr=$MY_ADDR --package-dir snippets/<example-dir>
+aptos move compile --dev --package-dir snippets/<example-dir>
 ```
 
-### Using a CLI profile
+`snippets/fractional-token` cannot use `--dev`. Compile it with:
 
 ```bash
-aptos init --profile my-profile
-aptos move publish --profile my-profile --named-addresses deploy_addr=my-profile --package-dir snippets/<example-dir>
+aptos move compile --named-addresses fraction_addr=0x1337,minter=0x2337 --package-dir snippets/fractional-token
 ```
 
-### Using the default profile
-
-```bash
-aptos init
-aptos move publish --named-addresses deploy_addr=default --package-dir snippets/<example-dir>
-```
-
-### Run tests for an example
+### Test
 
 ```bash
 aptos move test --dev --package-dir snippets/<example-dir>
+```
+
+Not every package has tests. See the **Tests** column in the [example index](#example-index) or the catalog in [AGENTS.md](AGENTS.md).
+
+### Deploy
+
+Publishing needs a CLI profile and prompts for confirmation unless you pass `--assume-yes`.
+
+```bash
+aptos init --network devnet --assume-yes
+aptos move publish --assume-yes --named-addresses deploy_addr=default --package-dir snippets/<example-dir>
+```
+
+Using an explicit address instead of a profile name:
+
+```bash
+MY_ADDR=0x12345
+aptos move publish --assume-yes --named-addresses deploy_addr=$MY_ADDR --package-dir snippets/<example-dir>
+```
+
+`snippets/snipe-prevention` must be deployed as a [code object](https://aptos.dev/en/build/smart-contracts/code-objects):
+
+```bash
+aptos move deploy-object --assume-yes --named-addresses antisnipe=default --package-dir snippets/snipe-prevention
 ```
 
 After deploying, interact with your contract via the [Aptos Explorer](https://explorer.aptoslabs.com/account/<ADDRESS>/modules/run?network=devnet).
 
 ---
 
+## For coding agents
+
+| Resource | Use it for |
+|----------|------------|
+| [AGENTS.md](AGENTS.md) | Non-interactive CLI flags, per-package compile/test commands, Move 2 conventions, CI coverage, gotchas |
+| [llms.txt](llms.txt) | Short index of every example README |
+| `snippets/<example>/README.md` | Module name, source file, entry/view functions, exact commands |
+
+Practical rules:
+
+- Compile and test locally; do not publish to mainnet.
+- Never run `aptos init` without `--network` and `--assume-yes` (it will prompt or hang).
+- Named addresses are **not** all `deploy_addr`. Check `Move.toml` or the catalog before compiling.
+- Prefer `--package-dir snippets/...` from the repo root so commands match the READMEs.
+
+---
+
 ## Example Documentation
 
-Every example has a `README.md` in its package directory. Each follows the same structure so you can scan any example quickly:
+Every example has a `README.md` in its package directory. Each follows the same structure so you (or an agent) can scan any example quickly:
 
 | Section | Description |
 |---------|-------------|
@@ -88,10 +124,10 @@ Every example has a `README.md` in its package directory. Each follows the same 
 | **Difficulty** | `Beginner`, `Intermediate`, or `Advanced` |
 | **Concepts Demonstrated** | Move language and Aptos framework topics covered |
 | **Key Structs / Key Functions** | Tables summarizing the main types and entry points |
-| **Deploy & Run** | Package path, named address, and commands to deploy, test, or run the prover |
+| **Deploy & Run** | Package path, fully qualified **module**, **source** file, named address, then **Compile**, **Deploy**, **Tests**, and **Prover** when they apply |
 | **Related Examples** | Cross-links to similar or prerequisite examples |
 
-See [Named Addresses](#named-addresses) below for the address placeholder each package expects at deploy time.
+See [Named Addresses](#named-addresses) below for the address placeholder each package expects at compile/deploy time.
 
 For a summary of Move 2 features used across examples, see [snippets/move-2/README.md](snippets/move-2/README.md).
 
@@ -278,10 +314,6 @@ snippets/
 │   ├── Move.toml
 │   └── sources/
 │       └── antisnipe_token.move
-├── snipe-prevention/         # Anti-snipe protection for token launches
-│   ├── Move.toml
-│   └── sources/
-│       └── antisnipe_token.move
 ├── storage/                  # Data structure comparison with gas benchmarks
 │   ├── Move.toml
 │   └── sources/
@@ -301,18 +333,19 @@ snippets/
 
 ## Named Addresses
 
-Different examples use different named addresses in their `Move.toml`. When deploying, substitute the appropriate address:
+Different examples use different named addresses in their `Move.toml`. When compiling without `--dev`, or when deploying, substitute the appropriate address. Agents: copy the compile line from the package README or from [AGENTS.md](AGENTS.md) rather than assuming `deploy_addr`.
 
 | Named Address | Used By |
 |--------------|---------|
-| `deploy_addr` | Most examples (error-codes, composable-nfts, controlled-mint, modifying-nfts, parallel-nfts, storage, struct-capabilities) |
+| `deploy_addr` | Most examples (error-codes, composable-nfts, controlled-mint, modifying-nfts, parallel-nfts, storage, struct-capabilities, private-vs-public, data-structures/heap) |
 | `deploy_address` | design-patterns/autonomous-objects |
 | `fraction_addr` | fractional-token, liquid-nfts |
+| `minter` | fractional-token (required together with `fraction_addr`; do not compile this package with `--dev`) |
 | `mystery_addr` | lootbox |
 | `lockup_deployer` | fa-lockup-example |
 | `deployer` | prover |
 | `antisnipe` | snipe-prevention |
-| `0x42` | objects (sticky-note) |
+| _(none)_ | objects — the module is `0x42::sticky_note` (numeric address, not a named address) |
 
 ---
 

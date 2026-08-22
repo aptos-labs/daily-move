@@ -68,12 +68,20 @@ public(friend) fun check_owner<T: key>(caller_address: address, object: Object<T
 | | |
 |---|---|
 | **Package** | `snippets/storage` |
+| **Modules** | `deploy_addr::object_management`, `allowlist_vector`, `allowlist_simple_map`, `allowlist_table`, `allowlist_smart_table`, `allowlist_smart_vector` |
+| **Sources** | `sources/*.move` |
 | **Named address** | `deploy_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/storage
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses deploy_addr=default --package-dir snippets/storage
+aptos move publish --assume-yes --named-addresses deploy_addr=default --package-dir snippets/storage
 ```
 
 ## Related Examples

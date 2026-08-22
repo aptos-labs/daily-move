@@ -59,12 +59,22 @@ Advanced
 | | |
 |---|---|
 | **Package** | `snippets/fractional-token` |
-| **Named address** | `fraction_addr` |
+| **Module** | `fraction_addr::fractional_token` |
+| **Source** | `sources/fractional_token.move` |
+| **Named addresses** | `fraction_addr`, `minter` |
+
+### Compile
+
+Do **not** use `--dev` (TokenMinter as a dev-dependency is broken). Pass both named addresses:
+
+```bash
+aptos move compile --named-addresses fraction_addr=0x1337,minter=0x2337 --package-dir snippets/fractional-token
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses fraction_addr=default --package-dir snippets/fractional-token
+aptos move publish --assume-yes --named-addresses fraction_addr=default,minter=default --package-dir snippets/fractional-token
 ```
 
 ### Tests

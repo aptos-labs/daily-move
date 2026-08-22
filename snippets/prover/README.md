@@ -79,12 +79,20 @@ spec take_escrow {
 | | |
 |---|---|
 | **Package** | `snippets/prover` |
+| **Module** | `deployer::payment_escrow` |
+| **Source** | `sources/payment_escrow.move` |
 | **Named address** | `deployer` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/prover
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses deployer=default --package-dir snippets/prover
+aptos move publish --assume-yes --named-addresses deployer=default --package-dir snippets/prover
 ```
 
 ### Prover

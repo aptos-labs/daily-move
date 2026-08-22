@@ -40,12 +40,20 @@ const E_ERROR_WITHOUT_MESSAGE: u64 = 1;
 | | |
 |---|---|
 | **Package** | `snippets/error-codes` |
+| **Module** | `deploy_addr::error_codes` |
+| **Source** | `sources/error_codes.move` |
 | **Named address** | `deploy_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/error-codes
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses deploy_addr=default --package-dir snippets/error-codes
+aptos move publish --assume-yes --named-addresses deploy_addr=default --package-dir snippets/error-codes
 ```
 
 ### Tests

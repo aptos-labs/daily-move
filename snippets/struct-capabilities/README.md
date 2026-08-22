@@ -59,12 +59,20 @@ If you forget to handle `coins` or `legacy_tokens`, the code will not compile --
 | | |
 |---|---|
 | **Package** | `snippets/struct-capabilities` |
+| **Module** | `deploy_addr::mailbox` |
+| **Source** | `sources/mailbox.move` |
 | **Named address** | `deploy_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/struct-capabilities
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses deploy_addr=default --package-dir snippets/struct-capabilities
+aptos move publish --assume-yes --named-addresses deploy_addr=default --package-dir snippets/struct-capabilities
 ```
 
 ## Related Examples

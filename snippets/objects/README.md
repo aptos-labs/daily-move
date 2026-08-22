@@ -45,12 +45,24 @@ Object-based sticky notes are cheaper to transfer than resource-based ones when 
 | | |
 |---|---|
 | **Package** | `snippets/objects` |
-| **Named address** | `0x42` |
+| **Module** | `0x42::sticky_note` |
+| **Source** | `sources/sticky_note.move` |
+| **Named address** | none (numeric module address `0x42`) |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/objects
+```
 
 ### Deploy
 
+This module is declared at numeric address `0x42`, not a named address in `Move.toml`. Publishing it requires a signer for `0x42`. For learning, compile is enough.
+
+If you control an account at `0x42`:
+
 ```bash
-aptos move publish --named-addresses 0x42=default --package-dir snippets/objects
+aptos move publish --assume-yes --package-dir snippets/objects
 ```
 
 ## Related Examples

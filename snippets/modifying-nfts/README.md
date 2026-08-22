@@ -53,12 +53,20 @@ move_to(&object_signer, CollectionPoints { total_points });
 | | |
 |---|---|
 | **Package** | `snippets/modifying-nfts` |
+| **Module** | `deploy_addr::modify_nfts` |
+| **Source** | `sources/modify_nfts.move` |
 | **Named address** | `deploy_addr` |
+
+### Compile
+
+```bash
+aptos move compile --dev --package-dir snippets/modifying-nfts
+```
 
 ### Deploy
 
 ```bash
-aptos move publish --named-addresses deploy_addr=default --package-dir snippets/modifying-nfts
+aptos move publish --assume-yes --named-addresses deploy_addr=default --package-dir snippets/modifying-nfts
 ```
 
 ## Related Examples
